@@ -1,7 +1,7 @@
 ﻿using FluentValidation;
-using Basket.API.DTOS;
+using Basket.API.DTOS.BasketDTO.Basket;
 
-namespace Basket.API.DTOS.Validators
+namespace Basket.API.DTOS.BasketDTO.Validators
 {
     public class CreateBasketValidators : AbstractValidator<CreateBasketDTO>
     {
