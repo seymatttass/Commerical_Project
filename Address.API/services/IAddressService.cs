@@ -9,8 +9,8 @@ namespace Address.API.services
 
         Task<IEnumerable<Addres>> GetAllAsync();
         Task<Addres> GetByIdAsync(int id);
-        Task<Addres> AddAsync(CreateAddressDTO createCategoryDto);
-        Task<bool> UpdateAsync(UpdateAddressDTO updateCategoryDto);
+        Task<Addres> AddAsync(CreateAddressDTO createAddressDto);
+        Task<bool> UpdateAsync(UpdateAddressDTO updateAddressDto);
         Task<bool> DeleteAsync(int id);
     }
 }
