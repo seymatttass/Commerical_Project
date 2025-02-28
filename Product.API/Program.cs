@@ -1,9 +1,9 @@
-using Address.API.Data;
-using Address.API.Data.Repository;
-using Address.API.DTOS.Validators;
-using Address.API.services;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
+using Product.API.Data;
+using Product.API.Data.Repository;
+using Product.API.DTOS.Validators;
+using Product.API.service;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,19 +12,21 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 
 // DbContext configuration
-builder.Services.AddDbContext<AddressDbContext>(options =>
+builder.Services.AddDbContext<ProductDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // AutoMapper configuration
 builder.Services.AddAutoMapper(typeof(Program));
 
 // Repository and Service registrations
-builder.Services.AddScoped<IAddressRepository, AddressRepository>();
-builder.Services.AddScoped<IAddressService, AddressService>();
+builder.Services.AddScoped<IProductRepository, ProductRepository>();
+builder.Services.AddScoped<IProductService, ProductService>();
 
 // Validator'larý kaydedin
-builder.Services.AddValidatorsFromAssemblyContaining<CreateAddressDtoValidator>();
-builder.Services.AddValidatorsFromAssemblyContaining<UpdateAddressDtoValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<CreateProductDtoValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<UpdateProductDtoValidator>();
+
+
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
