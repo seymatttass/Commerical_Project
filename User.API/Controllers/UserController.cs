@@ -15,9 +15,7 @@ namespace Users.API.Controllers
             _userService = userService;
         }
 
-        /// <summary>
-        /// Tüm kullanıcıları getirir.
-        /// </summary>
+
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
@@ -25,9 +23,7 @@ namespace Users.API.Controllers
             return Ok(users);
         }
 
-        /// <summary>
-        /// Belirtilen ID'ye sahip kullanıcıyı getirir.
-        /// </summary>
+
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
@@ -37,9 +33,7 @@ namespace Users.API.Controllers
             return Ok(user);
         }
 
-        /// <summary>
-        /// Yeni kullanıcı oluşturur.
-        /// </summary>
+ 
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateUserDTO createUserDto)
         {
@@ -47,9 +41,6 @@ namespace Users.API.Controllers
             return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
         }
 
-        /// <summary>
-        /// Kullanıcı bilgilerini günceller.
-        /// </summary>
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] UpdateUserDTO updateUserDto)
         {
@@ -63,9 +54,6 @@ namespace Users.API.Controllers
             return NoContent();
         }
 
-        /// <summary>
-        /// Kullanıcıyı siler.
-        /// </summary>
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {

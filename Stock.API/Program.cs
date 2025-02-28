@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Stock.API.Data;
 using Stock.API.Data.Repository;
 using Stock.API.services;
