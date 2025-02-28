@@ -1,55 +1,56 @@
 ﻿using Basket.API.DTOS;
 using Basket.API.Services;
 using Microsoft.AspNetCore.Mvc;
-
 namespace Basket.API.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
-    public class BasketController : ControllerBase
+    [Route("api/basket-items")]
+    public class BasketItemController : ControllerBase
     {
-        private readonly IBasketService _basketService;
+        private readonly IBasketItemService _basketItemService;
 
-        public BasketController(IBasketService basketService)
+        public BasketItemController(IBasketItemService basketItemService)
         {
-            _basketService = basketService;
+            _basketItemService = basketItemService;
         }
 
 
-        [HttpGet]
-        public async Task<IActionResult> GetAll()
+        [HttpGet("basket/{basketId}")]
+        public async Task<IActionResult> GetByBasketId(int basketId)
         {
-            var baskets = await _basketService.GetAllAsync();
-            return Ok(baskets);
+            var items = await _basketItemService.GetByBasketIdAsync(basketId);
+            return Ok(items);
         }
+
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
-            var basket = await _basketService.GetByIdAsync(id);
-            if (basket == null)
-                return NotFound($"{id} ID'li basket bulunamadı.");
-            return Ok(basket);
+            var item = await _basketItemService.GetByIdAsync(id);
+            if (item == null)
+                return NotFound($"Basket item {id} bulunamadı.");
+
+            return Ok(item);
         }
 
 
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] CreateBasketDTO createBasketDto)
+        public async Task<IActionResult> Create([FromBody] CreateBasketItemDTO createBasketItemDto)
         {
-            var result = await _basketService.AddAsync(createBasketDto);
+            var result = await _basketItemService.AddAsync(createBasketItemDto);
             return CreatedAtAction(nameof(GetById), new { id = result.ID }, result);
         }
 
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, [FromBody] UpdateBasketDTO updateBasketDto)
+        public async Task<IActionResult> Update(int id, [FromBody] UpdateBasketItemDTO updateBasketItemDto)
         {
-            if (id != updateBasketDto.Id)
+            if (id != updateBasketItemDto.Id)
                 return BadRequest("URL'deki ID ile DTO'daki ID eşleşmiyor.");
 
-            var result = await _basketService.UpdateAsync(updateBasketDto);
+            var result = await _basketItemService.UpdateAsync(updateBasketItemDto);
             if (!result)
-                return NotFound($"{id} ID'li basket bulunamadı.");
+                return NotFound($"Basket item {id} bulunamadı.");
 
             return NoContent();
         }
@@ -57,9 +58,9 @@ namespace Basket.API.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
-            var result = await _basketService.DeleteAsync(id);
+            var result = await _basketItemService.DeleteAsync(id);
             if (!result)
-                return NotFound($"{id} ID'li basket bulunamadı.");
+                return NotFound($"Basket item {id} bulunamadı.");
 
             return NoContent();
         }

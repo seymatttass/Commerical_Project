@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 
-namespace Basket.API.Data.Repository
+namespace Basket.API.Data.Repository.Basket
 {
     public class BasketRepository : IBasketRepository
     {
