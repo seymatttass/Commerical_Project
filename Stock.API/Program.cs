@@ -1,4 +1,3 @@
-using Stock.API.DTOS.Validators;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Stock.API.Data;
@@ -25,7 +24,7 @@ builder.Services.AddScoped<IStockService, StockService>();
 
 
 
-// Validator'larý kaydedin
+// Validator'larÃ½ kaydedin
 builder.Services.AddValidatorsFromAssemblyContaining<CreateStockDtoValidator>();
 builder.Services.AddValidatorsFromAssemblyContaining<UpdateStockDtoValidator>();
 
