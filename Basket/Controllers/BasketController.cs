@@ -1,66 +1,77 @@
-﻿using Basket.API.DTOS;
-using Basket.API.Services;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
+using Basket.API.Data.Entities;
+using Basket.API.Services.BasketServices;
+using Basket.API.DTOS.BasketDTO.Basket;
+using AutoMapper;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
 namespace Basket.API.Controllers
 {
+    [Route("api/[controller]")]
     [ApiController]
-    [Route("api/basket-items")]
-    public class BasketItemController : ControllerBase
+    public class BasketController : ControllerBase
     {
-        private readonly IBasketItemService _basketItemService;
+        private readonly IBasketService _basketService;
+        private readonly IMapper _mapper;
 
-        public BasketItemController(IBasketItemService basketItemService)
+        public BasketController(IBasketService basketService, IMapper mapper)
         {
-            _basketItemService = basketItemService;
+            _basketService = basketService;
+            _mapper = mapper;
         }
 
-
-        [HttpGet("basket/{basketId}")]
-        public async Task<IActionResult> GetByBasketId(int basketId)
+        // GET: api/basket
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<Baskett>>> GetAllBaskets()
         {
-            var items = await _basketItemService.GetByBasketIdAsync(basketId);
-            return Ok(items);
+            var baskets = await _basketService.GetAllAsync();
+            return Ok(baskets);
         }
 
-
+        // GET: api/basket/{id}
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetById(int id)
+        public async Task<ActionResult<Baskett>> GetBasketById(int id)
         {
-            var item = await _basketItemService.GetByIdAsync(id);
-            if (item == null)
-                return NotFound($"Basket item {id} bulunamadı.");
+            var basket = await _basketService.GetByIdAsync(id);
+            if (basket == null)
+                return NotFound("Basket not found.");
 
-            return Ok(item);
+            return Ok(basket);
         }
 
-
+        // POST: api/basket
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] CreateBasketItemDTO createBasketItemDto)
+        public async Task<ActionResult> CreateBasket([FromBody] CreateBasketDTO basketDTO)
         {
-            var result = await _basketItemService.AddAsync(createBasketItemDto);
-            return CreatedAtAction(nameof(GetById), new { id = result.ID }, result);
+            var basket = await _basketService.AddAsync(basketDTO);
+            return CreatedAtAction(nameof(GetBasketById), new { id = basket.ID }, basket);
         }
 
-
+        // PUT: api/basket/{id}
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, [FromBody] UpdateBasketItemDTO updateBasketItemDto)
+        public async Task<IActionResult> UpdateBasket(int id, [FromBody] UpdateBasketDTO basketDTO)
         {
-            if (id != updateBasketItemDto.Id)
-                return BadRequest("URL'deki ID ile DTO'daki ID eşleşmiyor.");
+            if (id != basketDTO.Id)
+                return BadRequest("Basket ID mismatch.");
 
-            var result = await _basketItemService.UpdateAsync(updateBasketItemDto);
-            if (!result)
-                return NotFound($"Basket item {id} bulunamadı.");
+            var existingBasket = await _basketService.GetByIdAsync(id);
+            if (existingBasket == null)
+                return NotFound("Basket not found.");
+
+            var result = await _basketService.UpdateAsync(basketDTO);
+            if (!result) return BadRequest("Failed to update basket.");
 
             return NoContent();
         }
 
+        // DELETE: api/basket/{id}
         [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(int id)
+        public async Task<IActionResult> DeleteBasket(int id)
         {
-            var result = await _basketItemService.DeleteAsync(id);
+            var result = await _basketService.DeleteAsync(id);
             if (!result)
-                return NotFound($"Basket item {id} bulunamadı.");
+                return NotFound("Basket not found.");
 
             return NoContent();
         }
