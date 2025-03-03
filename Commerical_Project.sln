@@ -13,19 +13,21 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Users.API", "User.API\Users
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Payment.API", "PaymentAPI\Payment.API.csproj", "{CC0C4CB8-A134-4B1B-9973-6013908511BB}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Category.API", "Category.API\Category.API.csproj", "{EEC416B0-D474-405C-AB26-9F7533CB3FF6}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Category.API", "Category.API\Category.API.csproj", "{EEC416B0-D474-405C-AB26-9F7533CB3FF6}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ProductCategory.API", "ProductCategory\ProductCategory.API.csproj", "{A5D2735C-412F-43BA-B7F3-721864032144}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProductCategory.API", "ProductCategory\ProductCategory.API.csproj", "{A5D2735C-412F-43BA-B7F3-721864032144}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Product.API", "Product.API\Product.API.csproj", "{5CC78508-0022-4B9A-ABC6-176DF6C6EF08}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Product.API", "Product.API\Product.API.csproj", "{5CC78508-0022-4B9A-ABC6-176DF6C6EF08}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shipping.API", "Shipping\Shipping.API.csproj", "{0D0DC36D-DB9A-4168-A3EB-E99422476B40}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shipping.API", "Shipping\Shipping.API.csproj", "{0D0DC36D-DB9A-4168-A3EB-E99422476B40}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Order.API", "Order.API\Order.API.csproj", "{69268524-BAD0-4C2C-8956-CE83FC43739A}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Invoice.API", "Invoice.API\Invoice.API.csproj", "{BAADC421-C6E2-4C20-B26A-A0662D5C03D9}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InvoiceDetails", "InvoiceDetails\InvoiceDetails.csproj", "{71647AEC-12F3-44AD-AA18-02DAA07EE038}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProductShippinng.API", "ProductShippinng.API\ProductShippinng.API.csproj", "{031279D9-4F96-431F-9AEE-8306D00A8D77}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -69,7 +71,10 @@ Global
 		{0D0DC36D-DB9A-4168-A3EB-E99422476B40}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0D0DC36D-DB9A-4168-A3EB-E99422476B40}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0D0DC36D-DB9A-4168-A3EB-E99422476B40}.Release|Any CPU.Build.0 = Release|Any CPU
-
+		{69268524-BAD0-4C2C-8956-CE83FC43739A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{69268524-BAD0-4C2C-8956-CE83FC43739A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{69268524-BAD0-4C2C-8956-CE83FC43739A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{69268524-BAD0-4C2C-8956-CE83FC43739A}.Release|Any CPU.Build.0 = Release|Any CPU
 		{BAADC421-C6E2-4C20-B26A-A0662D5C03D9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{BAADC421-C6E2-4C20-B26A-A0662D5C03D9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BAADC421-C6E2-4C20-B26A-A0662D5C03D9}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -78,7 +83,10 @@ Global
 		{71647AEC-12F3-44AD-AA18-02DAA07EE038}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{71647AEC-12F3-44AD-AA18-02DAA07EE038}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{71647AEC-12F3-44AD-AA18-02DAA07EE038}.Release|Any CPU.Build.0 = Release|Any CPU
-
+		{031279D9-4F96-431F-9AEE-8306D00A8D77}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{031279D9-4F96-431F-9AEE-8306D00A8D77}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{031279D9-4F96-431F-9AEE-8306D00A8D77}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{031279D9-4F96-431F-9AEE-8306D00A8D77}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
