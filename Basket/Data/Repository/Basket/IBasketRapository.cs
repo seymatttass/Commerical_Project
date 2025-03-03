@@ -1,7 +1,7 @@
 ﻿using System.Linq.Expressions;
 using Basket.API.Data.Entities;
 
-namespace Basket.API.Data.Repository
+namespace Basket.API.Data.Repository.Basket
 {
     public interface IBasketRepository
     {

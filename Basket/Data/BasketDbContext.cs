@@ -1,21 +1,23 @@
-﻿// Alias tanımı
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using BasketEntity = Basket.API.Data.Entities.Baskett;
+using BasketItemEntity = Basket.API.Data.Entities.BasketItem;
 
 namespace Basket.API.Data
 {
     public class BasketDbContext : DbContext
     {
-        public BasketDbContext(DbContextOptions options) : base(options)
+        public BasketDbContext(DbContextOptions<BasketDbContext> options) : base(options)
         {
         }
 
-        // Artık BasketEntity diyerek sınıfı net şekilde belirtiyoruz
         public DbSet<BasketEntity> Baskets { get; set; }
+        public DbSet<BasketItemEntity> BasketItems { get; set; } 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<BasketItemEntity>();
         }
     }
 }

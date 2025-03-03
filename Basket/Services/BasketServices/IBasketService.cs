@@ -1,7 +1,7 @@
 ﻿using Basket.API.Data.Entities;
-using Basket.API.DTOS;
+using Basket.API.DTOS.BasketDTO.Basket;
 
-namespace Basket.API.Services
+namespace Basket.API.Services.BasketServices
 {
     public interface IBasketService
     {

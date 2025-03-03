@@ -1,9 +1,10 @@
 ﻿using AutoMapper;
 using Basket.API.Data.Entities;
-using Basket.API.Data.Repository;
-using Basket.API.DTOS;
+using Basket.API.Data.Repository.Basket;
+using Basket.API.DTOS.BasketDTO.Basket;
+using Basket.API.Services.BasketServices;
 
-namespace Basket.API.Services
+namespace Basket.API.Services.BasketService
 {
     public class BasketService : IBasketService
     {

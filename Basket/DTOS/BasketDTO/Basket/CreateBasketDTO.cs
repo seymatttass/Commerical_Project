@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Basket.API.DTOS
+namespace Basket.API.DTOS.BasketDTO.Basket
 {
     public class CreateBasketDTO
     {
