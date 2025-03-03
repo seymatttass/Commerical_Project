@@ -27,7 +27,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Invoice.API", "Invoice.API\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InvoiceDetails", "InvoiceDetails\InvoiceDetails.csproj", "{71647AEC-12F3-44AD-AA18-02DAA07EE038}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProductShippinng.API", "ProductShippinng.API\ProductShippinng.API.csproj", "{031279D9-4F96-431F-9AEE-8306D00A8D77}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProductShipping.API", "ProductShippinng.API\ProductShipping.API.csproj", "{031279D9-4F96-431F-9AEE-8306D00A8D77}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
