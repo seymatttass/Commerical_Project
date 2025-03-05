@@ -9,6 +9,8 @@ namespace Product.API.Data
         }
 
         public DbSet<Entities.Product> Products { get; set; }
+        public DbSet<Entities.Category> Categories { get; set; }
+        public DbSet<Entities.ProductCategory> ProductCategories { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -21,6 +23,23 @@ namespace Product.API.Data
                 //entity.Property(e => e.CategoryName).IsRequired().HasMaxLength(100);
                 //entity.Property(e => e.CategoryDescription).HasMaxLength(500);
             });
+
+            modelBuilder.Entity<Entities.Category>(entity =>
+            {
+                //entity.ToTable("Addres");
+                //entity.HasKey(e => e.Id);
+                //entity.Property(e => e.CategoryName).IsRequired().HasMaxLength(100);
+                //entity.Property(e => e.CategoryDescription).HasMaxLength(500);
+            });
+
+            modelBuilder.Entity<Entities.ProductCategory>(entity =>
+            {
+                //entity.ToTable("Addres");
+                //entity.HasKey(e => e.Id);
+                //entity.Property(e => e.CategoryName).IsRequired().HasMaxLength(100);
+                //entity.Property(e => e.CategoryDescription).HasMaxLength(500);
+            });
         }
+
     }
 }

@@ -1,9 +1,15 @@
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Product.API.Data;
-using Product.API.Data.Repository;
-using Product.API.DTOS.Validators;
-using Product.API.service;
+using Product.API.Data.Repository.CategoryProductRepository;
+using Product.API.Data.Repository.CategoryRepository;
+using Product.API.Data.Repository.ProductRepository;
+using Product.API.DTOS.CategoryDTO.Validator;
+using Product.API.DTOS.ProductCategoryDTO.Validator;
+using Product.API.DTOS.ProductDTO.Validator;
+using Product.API.service.CategoryService;
+using Product.API.service.ProductCategoryService;
+using Product.API.service.ProductService;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,12 +17,39 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 
+
 // DbContext configuration
 builder.Services.AddDbContext<ProductDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // AutoMapper configuration
 builder.Services.AddAutoMapper(typeof(Program));
+
+
+// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
+
+
+// Repository and Service registrations
+builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+builder.Services.AddScoped<ICategoryService, CategoryService>();
+
+// Validator'larý kaydedin
+builder.Services.AddValidatorsFromAssemblyContaining<CreateCategoryDtoValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<UpdateCategoryDtoValidator>();
+
+
+// Repository and Service registrations
+builder.Services.AddScoped<IProductCategoryRepository, ProductCategoryRepository>();
+builder.Services.AddScoped<IProductCategoryService, ProductCategoryService>();
+
+// Validator'larý kaydedin
+builder.Services.AddValidatorsFromAssemblyContaining<CreateProductCategoryDtoValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<UpdateProductCategoryDtoValidator>();
+
+
 
 // Repository and Service registrations
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
@@ -28,9 +61,7 @@ builder.Services.AddValidatorsFromAssemblyContaining<UpdateProductDtoValidator>(
 
 
 
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+
 
 var app = builder.Build();
 
