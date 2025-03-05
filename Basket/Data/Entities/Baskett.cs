@@ -11,5 +11,7 @@ namespace Basket.API.Data.Entities
         public int UserId { get; set; }
         public int StockId { get; set; }
         public decimal TotalPrice { get; set; }
+        public List<BasketItem> BasketItems { get; set; } = new List<BasketItem>();
+
     }
 }
