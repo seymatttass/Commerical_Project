@@ -11,5 +11,7 @@ namespace Basket.API.Data.Entities
         public int BasketId { get; set; }
         public decimal Price { get; set; }
         public int Count { get; set; }
+        public decimal TotalItemPrice => Price * Count;
+
     }
 }

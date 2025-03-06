@@ -13,8 +13,6 @@ namespace Basket.API.DTOS.BasketDTO.Validators
             RuleFor(x => x.StockId)
                 .GreaterThan(0).WithMessage("StockId must be greater than 0.");
 
-            RuleFor(x => x.TotalPrice)
-                .GreaterThanOrEqualTo(0).WithMessage("TotalPrice must be a positive value.");
         }
     }
 }
