@@ -8,14 +8,18 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="MassTransit.EntityFrameworkCore" Version="8.0.0" />
     <PackageReference Include="MassTransit.RabbitMQ" Version="8.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.1" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="StateMap\" />
-    <Folder Include="StateMachines\" />
-    <Folder Include="StateInstances\" />
-    <Folder Include="StateDbContext\" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.0" />
   </ItemGroup>
 </Project>
