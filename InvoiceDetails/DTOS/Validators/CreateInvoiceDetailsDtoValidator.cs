@@ -15,8 +15,6 @@ namespace InvoiceDetails.DTOS.Validators
 
             RuleFor(x => x.ProductId)
                 .NotEmpty().WithMessage("ürün id bilgisi boş olamaz");
-
-
         }
     }
 }
