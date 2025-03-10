@@ -9,7 +9,13 @@ namespace Product.API.Data.Entities
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         [Required]
         public int Id { get; set; }
+
+        [ForeignKey("Category")]
+        [Required]
         public int CategoryId { get; set; }
+
+        [ForeignKey("Product")]
+        [Required]
         public int ProductId { get; set; }
     }
 }

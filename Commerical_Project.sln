@@ -29,6 +29,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SagaStateMachine.Service", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Product.API", "Product.API\Product.API.csproj", "{809B8BF9-8D41-46CD-895A-B6095B06C78F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shared", "Shared\Shared.csproj", "{38EADBD7-5079-4F03-8435-89FABD15F5CF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -87,6 +89,10 @@ Global
 		{809B8BF9-8D41-46CD-895A-B6095B06C78F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{809B8BF9-8D41-46CD-895A-B6095B06C78F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{809B8BF9-8D41-46CD-895A-B6095B06C78F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{38EADBD7-5079-4F03-8435-89FABD15F5CF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{38EADBD7-5079-4F03-8435-89FABD15F5CF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{38EADBD7-5079-4F03-8435-89FABD15F5CF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{38EADBD7-5079-4F03-8435-89FABD15F5CF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
