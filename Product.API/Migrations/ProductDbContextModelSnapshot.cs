@@ -53,17 +53,12 @@ namespace Product.API.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("Code")
-                        .HasColumnType("integer");
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
 
-                    b.Property<int>("Name")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("Price")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("ProductCategoryId")
-                        .HasColumnType("integer");
+                    b.Property<decimal>("Price")
+                        .HasColumnType("numeric");
 
                     b.HasKey("Id");
 

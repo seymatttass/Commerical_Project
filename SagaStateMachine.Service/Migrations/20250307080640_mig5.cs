@@ -2,10 +2,10 @@
 
 #nullable disable
 
-namespace Product.API.Migrations
+namespace SagaStateMachine.Service.Migrations
 {
     /// <inheritdoc />
-    public partial class mig3 : Migration
+    public partial class mig5 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

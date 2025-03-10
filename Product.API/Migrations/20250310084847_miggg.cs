@@ -6,7 +6,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Product.API.Migrations
 {
     /// <inheritdoc />
-    public partial class mig2 : Migration
+    public partial class miggg : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -46,10 +46,8 @@ namespace Product.API.Migrations
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    ProductCategoryId = table.Column<int>(type: "integer", nullable: false),
-                    Code = table.Column<int>(type: "integer", nullable: false),
-                    Name = table.Column<int>(type: "integer", nullable: false),
-                    Price = table.Column<int>(type: "integer", nullable: false)
+                    Name = table.Column<string>(type: "text", nullable: false),
+                    Price = table.Column<decimal>(type: "numeric", nullable: false)
                 },
                 constraints: table =>
                 {
