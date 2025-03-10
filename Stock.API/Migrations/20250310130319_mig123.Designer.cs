@@ -11,8 +11,8 @@ using Stock.API.Data;
 namespace Stock.API.Migrations
 {
     [DbContext(typeof(StockDbContext))]
-    [Migration("20250307081333_mig4")]
-    partial class mig4
+    [Migration("20250310130319_mig123")]
+    partial class mig123
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
