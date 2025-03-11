@@ -169,13 +169,6 @@ app.MapPost("/create-all", async (ProductDbContext context, CreateAllRequest req
     }
 });
 
-// Ýstek modeli
-
-
-
-
-
-
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
