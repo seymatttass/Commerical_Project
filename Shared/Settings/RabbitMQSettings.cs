@@ -16,11 +16,9 @@ namespace Shared.Settings
         public const string Stock_CheckStockQueue = "stock-check-stock-queue"; // Stok kontrol kuyruğu
         public const string Stock_StockReservedQueue = "stock-stock-reserved-queue"; // Stok rezerve edildi
         public const string Stock_StockNotReservedQueue = "stock-stock-not-reserved-queue"; // Stok rezerve edilemedi
-        public const string Stock_StockRollbackQueue = "stock-stock-rollback-queue"; // Stok rollback kuyruğu
 
         // **Order Servisi Kuyrukları**
         public const string Order_OrderCreatedQueue = "order-order-created-queue"; // Sipariş oluşturma kuyruğu
-        public const string Order_OrderCompletedQueue = "order-order-completed-queue"; // Sipariş tamamlandı kuyruğu
         public const string Order_OrderFailedQueue = "order-order-failed-queue"; // Sipariş başarısız kuyruğu
 
         // **Payment Servisi Kuyrukları**
@@ -29,10 +27,9 @@ namespace Shared.Settings
         public const string Payment_PaymentFailedQueue = "payment-payment-failed-queue"; // Ödeme başarısız kuyruğu
 
         // **Basket (Sepet) Servisi Kuyrukları**
-        public const string Basket_AddToBasketQueue = "basket-add-to-basket-queue"; // Kullanıcı sepete ekleme kuyruğu
-        public const string Basket_BasketItemAddedQueue = "basket-basket-item-added-queue"; // Ürün sepete eklendi kuyruğu
+        public const string Basket_ProductAddedToBasketQueue = "basket-add-to-basket-queue"; // Kullanıcı sepete ekleme kuyruğu
+        public const string Basket_BasketItemCompletedQueue = "basket-basket-item-added-queue"; // Ürün sepete eklendi kuyruğu
 
-        // **RabbitMQ Exchange Adı (Tüm eventlerin yönlendirileceği yer)**
-        public const string EventBusExchange = "event-bus-exchange"; 
     }
 }
+    
