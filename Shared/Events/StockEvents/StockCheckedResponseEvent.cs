@@ -17,7 +17,6 @@ namespace Shared.Events.StockEvents
             CorrelationId = correlationId;
         }
         public int ProductId { get; set; }
-        public int RequestedCount { get; set; }
-        public bool IsStockAvailable { get; set; } // Stok var mı?
+        public int Count { get; set; }
     }
 }

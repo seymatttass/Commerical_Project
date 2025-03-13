@@ -19,7 +19,7 @@ namespace Shared.Events.BasketEvents
         public int Count { get; set; }
         public int UserId { get; set; }
         public decimal Price { get; set; }
-        public string ProductName { get; set; }
+        public string Name { get; set; }
     }
 }
     
