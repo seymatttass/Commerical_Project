@@ -10,6 +10,7 @@ namespace Basket.API.Data.Entities
         public int ID { get; set; }
         public int UserId { get; set; }
         public int StockId { get; set; }
+        public int ProductId { get; set; }    
         public decimal TotalPrice { get; set; }
         public List<BasketItem> BasketItems { get; set; } = new List<BasketItem>();
 
