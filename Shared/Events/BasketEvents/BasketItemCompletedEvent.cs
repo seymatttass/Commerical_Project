@@ -1,4 +1,5 @@
 ﻿using MassTransit;
+using Shared.Messages;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,9 +9,9 @@ using System.Threading.Tasks;
 namespace Shared.Events.BasketEvents
 {
     //Basket.API ürünü sepete ekler ve BasketItemAddedEvent ile işlemin tamamlandığını bildirir 
-    public class BasketItemAddedEvent : CorrelatedBy<Guid>
+    public class BasketItemCompletedEvent : CorrelatedBy<Guid>
     {
-        public BasketItemAddedEvent(Guid correlationId)
+        public BasketItemCompletedEvent(Guid correlationId)
         {
             CorrelationId = correlationId;
         }
@@ -20,5 +21,7 @@ namespace Shared.Events.BasketEvents
         public int Count { get; set; }
         public decimal TotalPrice { get; set; }
         public string Name { get; set; }
+        public List<OrderItemMessage> OrderItems { get; set; } //BURAYA BAKMAMIZ LAZIMM
+
     }
 }

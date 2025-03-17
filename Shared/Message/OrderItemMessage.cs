@@ -13,4 +13,3 @@ namespace Shared.Messages
             public decimal Price { get; set; }
         }
 }
-

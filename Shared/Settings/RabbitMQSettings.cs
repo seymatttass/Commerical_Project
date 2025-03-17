@@ -30,6 +30,7 @@ namespace Shared.Settings
         public const string Basket_ProductAddedToBasketQueue = "basket-add-to-basket-queue"; // Kullanıcı sepete ekleme kuyruğu
         public const string Basket_BasketItemCompletedQueue = "basket-basket-item-added-queue"; // Ürün sepete eklendi kuyruğu
 
+        public const string Stock_RollbackMessageQueue = "stock-rollback-message-queue";
     }
 }
     

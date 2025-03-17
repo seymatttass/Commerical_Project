@@ -9,10 +9,10 @@ namespace Shared.Events.StockEvents
 {
     //Stock.API, stok durumunu kontrol eder ve sonucu StockCheckedResponseEvent olarak döner
     // Stock.API stok kontrolünü yaptıktan sonra sonucu döner
-    public class StockCheckedResponseEvent : CorrelatedBy<Guid>
+    public class StockCheckedEvent : CorrelatedBy<Guid>
     {
         public Guid CorrelationId { get; }
-        public StockCheckedResponseEvent(Guid correlationId)
+        public StockCheckedEvent(Guid correlationId)
         {
             CorrelationId = correlationId;
         }
