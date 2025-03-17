@@ -1,9 +1,12 @@
+using Address.API.Consumers;
 using Address.API.Data;
 using Address.API.Data.Repository;
 using Address.API.DTOS.Validators;
 using Address.API.services;
 using FluentValidation;
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
+using Shared.Settings;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -29,6 +32,23 @@ builder.Services.AddValidatorsFromAssemblyContaining<UpdateAddressDtoValidator>(
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+
+builder.Services.AddMassTransit(configurator =>
+{
+    configurator.AddConsumer<GetAddressDetailRequestConsumer>();
+
+    configurator.UsingRabbitMq((context, _configure) =>
+    {
+        _configure.Host(builder.Configuration["RabbitMQ"]);
+
+        _configure.ReceiveEndpoint(RabbitMQSettings.Address_GetAddressDetailQueue, e =>
+        e.ConfigureConsumer<GetAddressDetailRequestConsumer>(context));
+
+    });
+});
+
+
 
 var app = builder.Build();
 
