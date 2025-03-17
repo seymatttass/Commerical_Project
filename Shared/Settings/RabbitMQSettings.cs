@@ -16,6 +16,8 @@ namespace Shared.Settings
         public const string Stock_CheckStockQueue = "stock-check-stock-queue"; // Stok kontrol kuyruğu
         public const string Stock_StockReservedQueue = "stock-stock-reserved-queue"; // Stok rezerve edildi
         public const string Stock_StockNotReservedQueue = "stock-stock-not-reserved-queue"; // Stok rezerve edilemedi
+        public const string Stock_RollbackMessageQueue = "stock-rollback-message-queue";
+
 
         // **Order Servisi Kuyrukları**
         public const string Order_OrderCreatedQueue = "order-order-created-queue"; // Sipariş oluşturma kuyruğu
@@ -31,7 +33,10 @@ namespace Shared.Settings
         public const string Basket_ProductAddedToBasketQueue = "basket-add-to-basket-queue"; // Kullanıcı sepete ekleme kuyruğu
         public const string Basket_BasketItemCompletedQueue = "basket-basket-item-added-queue"; // Ürün sepete eklendi kuyruğu
 
-        public const string Stock_RollbackMessageQueue = "stock-rollback-message-queue";
+        public const string Address_GetAddressDetailQueue = "address-get-address-detail-queue";
+
+        public const string User_GetUserDetailQueue = "user-get-user-detail-queue";
+
     }
 }
     

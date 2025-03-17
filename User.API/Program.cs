@@ -6,6 +6,9 @@ using Users.API.Mapping;
 using FluentValidation;
 using Users.API.DTOS.Users;
 using Users.API.DTOS.Validators;
+using MassTransit;
+using Users.API.Consumers;
+using Shared.Settings;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,6 +27,24 @@ builder.Services.AddValidatorsFromAssemblyContaining<UpdateUserValidators>();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+
+builder.Services.AddMassTransit(configurator =>
+{
+    configurator.AddConsumer<GetUserDetailRequestConsumer>();
+
+    configurator.UsingRabbitMq((context, _configure) =>
+    {
+        _configure.Host(builder.Configuration["RabbitMQ"]);
+
+        _configure.ReceiveEndpoint(RabbitMQSettings.User_GetUserDetailQueue, e =>
+        e.ConfigureConsumer<GetUserDetailRequestConsumer>(context));
+
+
+    });
+});
+
+
 
 var app = builder.Build();
 
