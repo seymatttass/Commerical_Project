@@ -1,5 +1,8 @@
 using FluentValidation;
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
+using Shared.Settings;
+using Stock.API.Consumers;
 using Stock.API.Data;
 using Stock.API.Data.Repository;
 using Stock.API.DTOS.Validators;
@@ -28,6 +31,27 @@ builder.Services.AddValidatorsFromAssemblyContaining<UpdateStockDtoValidator>();
 // Swagger configuration
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+
+
+
+builder.Services.AddMassTransit(configurator =>
+{
+    configurator.AddConsumer<OrderCreatedEventConsumer>();
+    configurator.AddConsumer<StockRollbackMessageConsumer>();
+
+    configurator.UsingRabbitMq((context, _configure) =>
+    {
+        _configure.Host(builder.Configuration["RabbitMQ"]);
+
+        _configure.ReceiveEndpoint(RabbitMQSettings.Order_OrderCreatedQueue, e =>
+        e.ConfigureConsumer<OrderCreatedEventConsumer>(context));
+
+        _configure.ReceiveEndpoint(RabbitMQSettings.Stock_RollbackMessageQueue, e =>
+        e.ConfigureConsumer<StockRollbackMessageConsumer>(context));
+    });
+});
+
 
 var app = builder.Build();
 
