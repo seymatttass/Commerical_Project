@@ -1,4 +1,4 @@
-using FluentValidation;
+﻿using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Product.API.Data;
 using Product.API.Data.Entities.ViewModels;
@@ -10,6 +10,9 @@ using Product.API.DTOS.ProductCategoryDTO.Validator;
 using Product.API.DTOS.ProductDTO.Validator;
 using Product.API.service.CategoryService;
 using Product.API.service.ProductCategoryService;
+using Shared.Events.BasketEvents;
+using Shared.Settings;
+
 using Product.API.service.ProductService;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -39,7 +42,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 
-// Validator'lar� kaydedin
+// Validator'ları kaydedin
 builder.Services.AddValidatorsFromAssemblyContaining<CreateCategoryDtoValidator>();
 builder.Services.AddValidatorsFromAssemblyContaining<UpdateCategoryDtoValidator>();
 
@@ -48,7 +51,7 @@ builder.Services.AddValidatorsFromAssemblyContaining<UpdateCategoryDtoValidator>
 builder.Services.AddScoped<IProductCategoryRepository, ProductCategoryRepository>();
 builder.Services.AddScoped<IProductCategoryService, ProductCategoryService>();
 
-// Validator'lar� kaydedin
+// Validator'ları kaydedin
 builder.Services.AddValidatorsFromAssemblyContaining<CreateProductCategoryDtoValidator>();
 builder.Services.AddValidatorsFromAssemblyContaining<UpdateProductCategoryDtoValidator>();
 
@@ -58,7 +61,7 @@ builder.Services.AddValidatorsFromAssemblyContaining<UpdateProductCategoryDtoVal
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IProductService, ProductService>();
 
-// Validator'lar� kaydedin
+// Validator'ları kaydedin
 builder.Services.AddValidatorsFromAssemblyContaining<CreateProductDtoValidator>();
 builder.Services.AddValidatorsFromAssemblyContaining<UpdateProductDtoValidator>();
 
@@ -78,19 +81,19 @@ if (app.Environment.IsDevelopment())
 
 app.MapPost("/create-all", async (ProductDbContext context, CreateAllRequest request) =>
 {
-    // Verilerin do�rulu�unu kontrol et
+    // Verilerin doğruluğunu kontrol et
     if (request.Product == null)
-        return Results.BadRequest("�r�n verisi gerekli.");
+        return Results.BadRequest("Ürün verisi gerekli.");
 
     if (request.Category == null)
         return Results.BadRequest("Kategori verisi gerekli.");
 
-    // Transaction ba�lat
+    // Transaction başlat
     using var transaction = await context.Database.BeginTransactionAsync();
 
     try
     {
-        // 1. Kategoriyi kontrol et, ayn� isimli kategori varsa onu kullan
+        // 1. Kategoriyi kontrol et, aynı isimli kategori varsa onu kullan
         var existingCategory = await context.Categories
             .FirstOrDefaultAsync(c => c.Name.ToLower() == request.Category.Name.ToLower());
 
@@ -103,7 +106,7 @@ app.MapPost("/create-all", async (ProductDbContext context, CreateAllRequest req
         }
         else
         {
-            // Yeni kategori olu�tur
+            // Yeni kategori oluştur
             var category = new Product.API.Data.Entities.Category
             {
                 Name = request.Category.Name,
@@ -117,7 +120,7 @@ app.MapPost("/create-all", async (ProductDbContext context, CreateAllRequest req
             categoryId = category.Id;
         }
 
-        // 2. �r�n� olu�tur
+        // 2. Ürünü oluştur
         var product = new Product.API.Data.Entities.Product
         {
             Name = request.Product.Name,
@@ -127,7 +130,7 @@ app.MapPost("/create-all", async (ProductDbContext context, CreateAllRequest req
         await context.Products.AddAsync(product);
         await context.SaveChangesAsync();
 
-        // 3. �r�n-Kategori ili�kisini olu�tur
+        // 3. Ürün-Kategori ilişkisini oluştur
         var productCategory = new Product.API.Data.Entities.ProductCategory
         {
             ProductId = product.Id,
@@ -137,10 +140,10 @@ app.MapPost("/create-all", async (ProductDbContext context, CreateAllRequest req
         await context.ProductCategories.AddAsync(productCategory);
         await context.SaveChangesAsync();
 
-        // ��lemleri kaydet
+        // İşlemleri kaydet
         await transaction.CommitAsync();
 
-        // Sonucu d�nd�r
+        // Sonucu döndür
         var categoryResult = await context.Categories.FindAsync(categoryId);
 
         return Results.Created("/create-all", new
@@ -163,11 +166,41 @@ app.MapPost("/create-all", async (ProductDbContext context, CreateAllRequest req
     }
     catch (Exception ex)
     {
-        // Hata durumunda i�lemleri geri al
+        // Hata durumunda işlemleri geri al
         await transaction.RollbackAsync();
-        return Results.Problem($"��lem s�ras�nda hata olu�tu: {ex.Message}", statusCode: 500);
+        return Results.Problem($"İşlem sırasında hata oluştu: {ex.Message}", statusCode: 500);
     }
 });
+
+app.MapPost("/add-to-basket", async (ProductDbContext context, MassTransit.ISendEndpointProvider sendEndpointProvider) =>
+{
+    // **1️⃣ - İlk ürünü veritabanından çekelim**
+    var firstProduct = await context.Products.OrderBy(p => p.Id).FirstOrDefaultAsync();
+
+    if (firstProduct == null)
+    {
+        return Results.NotFound("Veritabanında hiç ürün bulunamadı.");
+    }
+
+    // **2️⃣ - Event objesini oluşturalım**
+    var correlationId = Guid.NewGuid(); // Saga takibi için benzersiz ID
+
+    ProductAddedToBasketRequestEvent productAddedEvent = new(correlationId)
+    {
+        ProductId = firstProduct.Id,
+        Count = 1, // Örnek olarak 1 tane ekliyoruz, isteğe göre değiştirilebilir
+        UserId = 1, // Sabit bir kullanıcı ID belirtiyoruz, bunu isteğe göre değiştirebilirsin
+        Name = firstProduct.Name,
+        Price = firstProduct.Price
+    };
+
+    // **3️⃣ - Eventi Saga State Machine kuyruğuna gönderelim**
+    var sendEndpoint = await sendEndpointProvider.GetSendEndpoint(new Uri($"queue:{RabbitMQSettings.StateMachineQueue}"));
+    await sendEndpoint.Send<ProductAddedToBasketRequestEvent>(productAddedEvent);
+
+    return Results.Ok($"Ürün '{firstProduct.Name}' sepete eklendi ve event yayınlandı.");
+});
+
 
 app.UseHttpsRedirection();
 
