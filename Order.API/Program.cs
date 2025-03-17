@@ -8,6 +8,10 @@ using Order.API.Services.OrderServices;
 using Order.API.Mapping;
 using Order.API.DTOS.OrdersDTO.Validators;
 using Order.API.DTOS.OrderItemDTO.Validators;
+using MassTransit;
+using Shared.Events.OrderCreatedEvent;
+using Order.API.Consumers;
+using Shared.Settings;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -32,6 +36,25 @@ builder.Services.AddValidatorsFromAssemblyContaining<UpdateOrderItemValidator>()
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+builder.Services.AddMassTransit(configurator =>
+{
+    configurator.AddConsumer<OrderCompletedEventConsumer>();
+    configurator.AddConsumer<OrderFailedEventConsumer>();
+
+    configurator.UsingRabbitMq((context, _configure) =>
+    {
+        _configure.Host(builder.Configuration["RabbitMQ"]);
+
+        _configure.ReceiveEndpoint(RabbitMQSettings.Order_OrderCompletedQueue,e =>
+        e.ConfigureConsumer<OrderCompletedEventConsumer>(context));
+
+        _configure.ReceiveEndpoint(RabbitMQSettings.Order_OrderFailedQueue, e =>
+        e.ConfigureConsumer<OrderFailedEventConsumer>(context));
+    });
+});
+
+
 
 var app = builder.Build();
 

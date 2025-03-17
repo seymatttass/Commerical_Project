@@ -6,6 +6,9 @@ using Payment.API.Mapping;
 using FluentValidation;
 using Payment.API.DTOS.Payments;
 using Payment.API.DTOS.Validators;
+using MassTransit;
+using Payment.API.Consumers;
+using Shared.Settings;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,6 +27,26 @@ builder.Services.AddValidatorsFromAssemblyContaining<UpdatePaymentValidators>();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+
+
+builder.Services.AddMassTransit(configurator =>
+{
+    configurator.AddConsumer<PaymentStartedEventConsumer>();
+
+    configurator.UsingRabbitMq((context, _configure) =>
+    {
+        _configure.Host(builder.Configuration["RabbitMQ"]);
+
+        _configure.ReceiveEndpoint(RabbitMQSettings.Payment_PaymentStartedQueue, e =>
+        e.ConfigureConsumer<PaymentStartedEventConsumer>(context));
+
+
+    });
+});
+
+
+
 
 var app = builder.Build();
 
