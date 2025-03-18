@@ -14,6 +14,9 @@ using Shared.Events.BasketEvents;
 using Shared.Settings;
 
 using Product.API.service.ProductService;
+using MassTransit;
+using SagaStateMachine.Service.Consumers;
+using Product.API.Consumers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -35,7 +38,23 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 
+builder.Services.AddMassTransit(configurator =>
+{
+    configurator.AddConsumer<CategoryEventConsumer>();
+    configurator.AddConsumer<ProductAddedToBasketConsumer>();
 
+    configurator.UsingRabbitMq((context, _configure) =>
+    {
+        _configure.Host(builder.Configuration["RabbitMQ"]);
+
+        _configure.ReceiveEndpoint(RabbitMQSettings.Basket_ProductAddedToBasketQueue, e =>
+        e.ConfigureConsumer<ProductAddedToBasketConsumer>(context));
+
+        _configure.ReceiveEndpoint(RabbitMQSettings.Category_CategoryEventQueue, e =>
+        e.ConfigureConsumer<CategoryEventConsumer>(context));
+
+    });
+});
 
 
 // Repository and Service registrations
