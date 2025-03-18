@@ -42,6 +42,8 @@ namespace Shared.Settings
         public const string Invoice_CreateInvoiceQueue = "invoice-create-invoice-queue";
         public const string Invoice_InvoiceCreatedQueue = "invoice-invoice-created-queue";
 
+        public const string Category_CategoryUpdatedQueue = "category-updated-queue";
+
     }
 }
     
