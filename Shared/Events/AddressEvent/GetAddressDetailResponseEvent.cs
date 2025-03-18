@@ -15,7 +15,7 @@ namespace Shared.Events.AddressEvent
         }
         public Guid CorrelationId { get; set; }
 
-        public int Id { get; set; }
+        public int AddressId { get; set; }
         public string Title { get; set; }
         public string Country { get; set; }
         public string City { get; set; }

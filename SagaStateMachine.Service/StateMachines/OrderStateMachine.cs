@@ -1,9 +1,11 @@
 ﻿using MassTransit;
 using SagaStateMachine.Service.StateInstances;
+using Shared.Events.AddressEvent;
 using Shared.Events.BasketEvents;
 using Shared.Events.OrderCreatedEvent;
 using Shared.Events.PaymentEvents;
 using Shared.Events.StockEvents;
+using Shared.Events.UserEvents;
 using Shared.Message;
 using Shared.Messages;
 using Shared.Settings;
@@ -21,7 +23,12 @@ namespace SagaStateMachine.Service.StateMachines
         public State PaymentCompleted { get; private set; }
         public State PaymentFailed { get; private set; }
         public State OrderCreated { get; private set; }
+        public State OrderCompleted { get; private set; }
         public State OrderFailed { get; private set; }
+        public State UserReceived { get; private set; }
+
+
+
 
         // Saga tarafından dinlenecek Event’ler
         public Event<ProductAddedToBasketRequestEvent> ProductAddedToBasketRequestEvent { get; private set; }
@@ -33,6 +40,10 @@ namespace SagaStateMachine.Service.StateMachines
         public Event<PaymentFailedEvent> PaymentFailedEvent { get; private set; }
         public Event<OrderCreatedEvent> OrderCreatedEvent { get; private set; }
         public Event<OrderFailEvent> OrderFailEvent { get; private set; }
+        public Event<OrderCompletedEvent> OrderCompletedEvent { get; private set; }
+        public Event<GetAddressDetailResponseEvent> GetAddressDetailResponseEvent { get; private set; }
+        public Event<GetUserDetailResponseEvent> GetUserDetailResponseEvent { get; private set; }
+
 
         public OrderStateMachine()
         {
@@ -70,6 +81,16 @@ namespace SagaStateMachine.Service.StateMachines
 
             Event(() => OrderFailEvent,
                 x => x.CorrelateById(ctx => ctx.Message.CorrelationId));
+
+            Event(() => OrderCompletedEvent,
+                x => x.CorrelateById(ctx => ctx.Message.CorrelationId));
+
+            Event(() => GetAddressDetailResponseEvent,
+                x => x.CorrelateById(ctx => ctx.Message.CorrelationId));
+
+            Event(() => GetUserDetailResponseEvent,
+                x => x.CorrelateById(ctx => ctx.Message.CorrelationId));
+
 
 
             // 2) Durum geçişleri (Initially, During blokları):
@@ -217,8 +238,66 @@ namespace SagaStateMachine.Service.StateMachines
                     .Finalize()
             );
 
-            // Saga bu durumlardan birine geldiğinde Finalize() çağrılırsa
-            // varsayılan olarak saga kaydı DB’den temizlenir.
+
+            // **OrderCreated** durumunda OrderCompletedEvent geldiğinde OrderCompleted durumuna geçiş
+            During(OrderCreated,
+                When(OrderCompletedEvent)
+                    .Then(context =>
+                    {
+                        context.Instance.IsOrderCompleted = true;
+                        context.Instance.AddressId = context.Data.AddressId;
+                    })
+                    .TransitionTo(OrderCompleted)
+                    // Önce kullanıcı bilgilerini almak için User.API'ye mesaj gönder
+                    .Send(new Uri($"queue:{RabbitMQSettings.GetUserDetailRequestEvent}"),
+                          context => new GetUserDetailRequestEvent(context.Data.CorrelationId)
+                          {
+                              UserId = context.Instance.UserId
+                          })
+            );
+
+
+            // **OrderCompleted** durumunda GetUserDetailResponseEvent'i ele alma
+            During(OrderCompleted,
+                When(GetUserDetailResponseEvent)
+                    .Then(context =>
+                    {
+                        // Userss entity'sine göre kullanıcı bilgilerini Saga instance'ına kaydet
+                        context.Instance.Username = context.Data.Username;
+                        context.Instance.Name = context.Data.Name;
+                        context.Instance.Surname = context.Data.Surname;
+                        context.Instance.Email = context.Data.Email;
+                        context.Instance.TelNo = context.Data.TelNo;
+                        context.Instance.Birthdate = context.Data.Birthdate;
+                    })
+                    .TransitionTo(UserReceived)
+                    // Kullanıcı bilgileri alındıktan sonra adres bilgilerini al
+                    .Send(new Uri($"queue:{RabbitMQSettings.GetAddressDetailRequestEvent}"),
+                          context => new GetAddressDetailRequestEvent(context.Data.CorrelationId)
+                          {
+                              AddressId = context.Instance.AddressId
+                          })
+            );
+
+            // **UserReceived** durumunda GetAddressDetailResponseEvent'i ele alma
+            During(UserReceived,
+                When(GetAddressDetailResponseEvent)
+                    .Then(context =>
+                    {
+                        // Adres bilgilerini Saga instance'ına kaydet
+                        context.Instance.Title = context.Data.Title;
+                        context.Instance.City = context.Data.City;
+                        context.Instance.Country = context.Data.Country;
+                        context.Instance.District = context.Data.District;
+                        context.Instance.AddressText = context.Data.AddressText;
+                        context.Instance.PostalCode = context.Data.PostalCode;
+
+                        // Burada kullanıcı ve adres bilgileri alındıktan sonra diğer işlemler yapılabilir
+                        // Örneğin: Fatura oluşturma, bildirim gönderme vb.
+                    })
+                    .Finalize()
+            );
+
             SetCompletedWhenFinalized();
         }
     }

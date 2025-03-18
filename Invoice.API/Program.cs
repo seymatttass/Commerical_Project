@@ -1,9 +1,12 @@
 using FluentValidation;
+using Invoice.API.Consumers;
 using Invoice.API.Data;
 using Invoice.API.Data.Repository;
 using Invoice.API.DTOS.Validators;
 using Invoice.API.services;
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
+using Shared.Settings;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,6 +37,22 @@ builder.Services.AddValidatorsFromAssemblyContaining<UpdateInvoiceDtoValidator>(
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+
+builder.Services.AddMassTransit(configurator =>
+{
+    configurator.AddConsumer<CreateInvoiceCommandConsumer>();
+
+    configurator.UsingRabbitMq((context, _configure) =>
+    {
+        _configure.Host(builder.Configuration["RabbitMQ"]);
+
+        _configure.ReceiveEndpoint(RabbitMQSettings.Invoice_CreateInvoiceQueue, e =>
+        e.ConfigureConsumer<CreateInvoiceCommandConsumer>(context));
+
+
+    });
+});
 
 var app = builder.Build();
 

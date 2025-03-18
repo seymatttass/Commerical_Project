@@ -8,7 +8,14 @@ namespace Shared.Events.OrderCreatedEvent
 {
     public class OrderCompletedEvent
     {
+        public OrderCompletedEvent(Guid correlationId)
+        {
+            CorrelationId = correlationId;
+        }
+
+        public Guid CorrelationId { get; set; }
         public int OrderId { get; set; }
+        public int AddressId { get; set; }
 
     }
 }

@@ -9,6 +9,7 @@ using Basket.API.Data.Repository;
 using Basket.API.DTOS.Validators;
 using Basket.API.Services.BasketServices;
 using Basket.API.Services;
+using MassTransit;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,6 +25,20 @@ builder.Services.AddStackExchangeRedisCache(options =>
 });
 
 
+builder.Services.AddMassTransit(configurator =>
+{
+    //configurator.AddConsumer<OrderCreatedEventConsumer>();
+
+    configurator.UsingRabbitMq((context, _configure) =>
+    {
+        _configure.Host(builder.Configuration["RabbitMQ"]);
+
+       // _configure.ReceiveEndpoint(RabbitMQSettings.Order_OrderCreatedQueue, e =>
+        //e.ConfigureConsumer<OrderCreatedEventConsumer>(context));
+
+
+    });
+});
 
 builder.Services.AddScoped<IBasketRepository, BasketRepository>();
 builder.Services.AddScoped<IBasketService, BasketService>();
