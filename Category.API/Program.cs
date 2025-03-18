@@ -3,6 +3,7 @@ using Category.API.Data.Repository;
 using Category.API.DTOS.Validators;
 using Category.API.services;
 using FluentValidation;
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -39,6 +40,17 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+builder.Services.AddMassTransit(configurator =>
+{
+
+    configurator.UsingRabbitMq((context, _configure) =>
+    {
+        _configure.Host(builder.Configuration["RabbitMQ"]);
+
+    });
+});
+
 
 app.UseHttpsRedirection();
 
