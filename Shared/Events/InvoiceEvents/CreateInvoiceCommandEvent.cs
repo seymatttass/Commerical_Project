@@ -4,9 +4,9 @@ using System;
 
 namespace Shared.Events.InvoiceEvents
 {
-    public class CreateInvoiceCommand : CorrelatedBy<Guid>
+    public class CreateInvoiceCommandEvent : CorrelatedBy<Guid>
     {
-        public CreateInvoiceCommand(Guid correlationId)
+        public CreateInvoiceCommandEvent(Guid correlationId)
         {
             CorrelationId = correlationId;
         }
