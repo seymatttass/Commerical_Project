@@ -33,9 +33,14 @@ namespace Shared.Settings
         public const string Basket_ProductAddedToBasketQueue = "basket-add-to-basket-queue"; // Kullanıcı sepete ekleme kuyruğu
         public const string Basket_BasketItemCompletedQueue = "basket-basket-item-added-queue"; // Ürün sepete eklendi kuyruğu
 
-        public const string Address_GetAddressDetailQueue = "address-get-address-detail-queue";
+        public const string GetAddressDetailRequestEvent = "address-get-address-request-queue";
+        public const string GetAddressDetailResponseEvent = "address-get-address-response-queue";
 
-        public const string User_GetUserDetailQueue = "user-get-user-detail-queue";
+        public const string GetUserDetailRequestEvent = "user-get-user-request-queue";
+        public const string GetUserDetailResponseEvent = "user-get-user-response-queue";
+
+        public const string Invoice_CreateInvoiceQueue = "invoice-create-invoice-queue";
+        public const string Invoice_InvoiceCreatedQueue = "invoice-invoice-created-queue";
 
     }
 }

@@ -37,7 +37,7 @@ builder.Services.AddMassTransit(configurator =>
     {
         _configure.Host(builder.Configuration["RabbitMQ"]);
 
-        _configure.ReceiveEndpoint(RabbitMQSettings.User_GetUserDetailQueue, e =>
+        _configure.ReceiveEndpoint(RabbitMQSettings.GetUserDetailRequestEvent, e =>
         e.ConfigureConsumer<GetUserDetailRequestConsumer>(context));
 
 

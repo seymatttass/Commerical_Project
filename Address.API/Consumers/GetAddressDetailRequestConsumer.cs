@@ -17,7 +17,7 @@ namespace Address.API.Consumers
             {
                 var response = new GetAddressDetailResponseEvent(context.Message.CorrelationId)
                 {
-                    Id = address.Id,
+                    AddressId = address.Id,
                     Title = address.Title,
                     Country = address.Country,
                     City = address.City,

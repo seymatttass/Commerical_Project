@@ -22,6 +22,28 @@ namespace SagaStateMachine.Service.StateInstances
         public bool IsPaymentCompleted { get; set; }  
         public bool IsPaymentFailed { get; set; } 
         public bool IsOrderCreated { get; set; } 
-        public bool IsOrderFailed { get; set; }  
+        public bool IsOrderFailed { get; set; }
+        public bool IsOrderCompleted { get; set; }
+
+
+        // Adres bilgileri için eklenen propertyler
+        public int AddressId { get; set; }
+        public string Title { get; set; }
+        public string City { get; set; }
+        public string Country { get; set; }
+        public string District { get; set; }
+        public string AddressText { get; set; }
+        public string PostalCode { get; set; }
+
+
+        // Userss entity'sine göre user bilgileri propertyleri
+        public string Username { get; set; }
+        public string Name { get; set; }
+        public string Surname { get; set; }
+        public string Email { get; set; }
+        public DateTime? Birthdate { get; set; }
+        public string TelNo { get; set; }
+
+
     }
 }

@@ -42,7 +42,7 @@ builder.Services.AddMassTransit(configurator =>
     {
         _configure.Host(builder.Configuration["RabbitMQ"]);
 
-        _configure.ReceiveEndpoint(RabbitMQSettings.Address_GetAddressDetailQueue, e =>
+        _configure.ReceiveEndpoint(RabbitMQSettings.GetAddressDetailRequestEvent, e =>
         e.ConfigureConsumer<GetAddressDetailRequestConsumer>(context));
 
     });
