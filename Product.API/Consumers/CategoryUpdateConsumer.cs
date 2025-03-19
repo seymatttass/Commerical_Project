@@ -20,7 +20,7 @@ namespace Product.API.Consumers
             _context = context;
         }
 
-        // ✅ Kategori Oluşturma Event'ini Dinler
+        //Kategori Oluşturma Event'ini Dinler
         public async Task Consume(ConsumeContext<CategoryCreatedEvent> context)
         {
             var categoryCreatedEvent = context.Message;
@@ -45,7 +45,7 @@ namespace Product.API.Consumers
             }
         }
 
-        // ✅ Kategori Güncelleme Event'ini Dinler
+        //Kategori Güncelleme Event'ini Dinler
         public async Task Consume(ConsumeContext<CategoryUpdatedEvent> context)
         {
             var categoryUpdatedEvent = context.Message;
@@ -65,7 +65,7 @@ namespace Product.API.Consumers
             }
         }
 
-        // ✅ Kategori Silme Event'ini Dinler
+        //Kategori Silme Event'ini Dinler
         public async Task Consume(ConsumeContext<CategoryDeletedEvent> context)
         {
             var categoryDeletedEvent = context.Message;
