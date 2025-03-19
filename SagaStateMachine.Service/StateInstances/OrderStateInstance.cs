@@ -45,5 +45,15 @@ namespace SagaStateMachine.Service.StateInstances
         public string TelNo { get; set; }
 
 
+        public bool IsShippingCreated { get; set; } = false;
+        public bool IsShippingCompleted { get; set; } = false;
+        public bool IsShippingFailed { get; set; } = false;
+
+        // Shipping verileri
+        public int ShippingId { get; set; }
+        public int CargoCompanyName { get; set; }
+        public int ShippingCharge { get; set; }
+        public bool FreeShipping { get; set; }
+        public int EstimatedDays { get; set; }
     }
 }

@@ -1,5 +1,9 @@
 using FluentValidation;
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
+using Order.API.Consumers;
+using Shared.Settings;
+using Shipping.API.Consumers;
 using Shipping.API.Data;
 using Shipping.API.Data.Repository;
 using Shipping.API.DTOS.Validators;
@@ -41,6 +45,30 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+
+builder.Services.AddMassTransit(configurator =>
+{
+    configurator.AddConsumer<ShippingCompletedEventConsumer>();
+    configurator.AddConsumer<ShippingCreatedEventConsumer>();
+    configurator.AddConsumer<ShippingFailedEventConsumer>();
+
+    configurator.UsingRabbitMq((context, _configure) =>
+    {
+        _configure.Host(builder.Configuration["RabbitMQ"]);
+
+        _configure.ReceiveEndpoint(RabbitMQSettings.Invoice_CreateInvoiceQueue, e =>
+        e.ConfigureConsumer<ShippingCompletedEventConsumer>(context));
+
+        _configure.ReceiveEndpoint(RabbitMQSettings.Invoice_CreateInvoiceQueue, e =>
+        e.ConfigureConsumer<ShippingCreatedEventConsumer>(context));
+
+        _configure.ReceiveEndpoint(RabbitMQSettings.Invoice_CreateInvoiceQueue, e =>
+        e.ConfigureConsumer<ShippingFailedEventConsumer>(context));
+
+    });
+
+
+});
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
