@@ -44,6 +44,10 @@ namespace Shared.Settings
 
         public const string Category_CategoryEventQueue = "category-event-queue";
 
+        public const string Shipping_CreateShippingQueue = "shipping-create-shipping-queue";
+        public const string Shipping_CompletedQueue = "shipping-completed-queue";
+        public const string Shipping_FailedQueue = "shipping-failed-queue";
+
     }
 }
     
