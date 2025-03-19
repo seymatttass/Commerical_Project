@@ -8,9 +8,9 @@ using Invoice.API.Data.Entities;
 
 namespace Invoice.API.Consumers
 {
-    public class CreateInvoiceCommandConsumer(InvoiceDbContext invoiceDbContext) : IConsumer<CreateInvoiceCommand>
+    public class CreateInvoiceCommandConsumer(InvoiceDbContext invoiceDbContext) : IConsumer<CreateInvoiceCommandEvent>
     {
-        public async Task Consume(ConsumeContext<CreateInvoiceCommand> context)
+        public async Task Consume(ConsumeContext<CreateInvoiceCommandEvent> context)
         {
             try
             {

@@ -17,7 +17,7 @@ namespace Category.API.Controllers
 
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetById(int id) // ✅ Bu metod eksikse ekle
+        public async Task<IActionResult> GetById(int id)
         {
             var category = await _categoryService.GetByIdAsync(id);
             if (category == null)
@@ -74,7 +74,6 @@ namespace Category.API.Controllers
 
             return NoContent();
         }
-
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
