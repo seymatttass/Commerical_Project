@@ -1,5 +1,4 @@
-﻿using Address.API.DTOS.Address;
-using FluentValidation;
+﻿using FluentValidation;
 
 namespace Address.API.DTOS.Validators
 {

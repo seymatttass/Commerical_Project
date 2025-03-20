@@ -68,12 +68,15 @@ using (var scope = app.Services.CreateScope())  // BuildServiceProvider() kullan
     {
         dbContext.Stocks.AddRange(
             new Stock.API.Data.Entities.Stock { ProductId = 1, Count = 200 },
-            new Stock.API.Data.Entities.Stock { ProductId = 3, Count = 50 },
+            new Stock.API.Data.Entities.Stock { ProductId = 2, Count = 50 },
+            new Stock.API.Data.Entities.Stock { ProductId = 3, Count = 10 },
             new Stock.API.Data.Entities.Stock { ProductId = 4, Count = 10 },
             new Stock.API.Data.Entities.Stock { ProductId = 5, Count = 60 },
             new Stock.API.Data.Entities.Stock { ProductId = 6, Count = 60 },
             new Stock.API.Data.Entities.Stock { ProductId = 7, Count = 60 },
-            new Stock.API.Data.Entities.Stock { ProductId = 8, Count = 60 }
+            new Stock.API.Data.Entities.Stock { ProductId = 8, Count = 60 },
+            new Stock.API.Data.Entities.Stock { ProductId = 9, Count = 60 },
+            new Stock.API.Data.Entities.Stock { ProductId = 10, Count = 60 }
         );
 
         dbContext.SaveChanges();  // `await` gerektirmez, çünkü `Run()` blok içinde değil

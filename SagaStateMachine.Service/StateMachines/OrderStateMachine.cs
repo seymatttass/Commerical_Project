@@ -4,7 +4,6 @@ using Shared.Events.AddressEvent;
 using Shared.Events.BasketEvents;
 using Shared.Events.OrderCreatedEvent;
 using Shared.Events.PaymentEvents;
-using Shared.Events.ShippingEvents;
 using Shared.Events.StockEvents;
 using Shared.Events.UserEvents;
 using Shared.Message;
@@ -28,9 +27,6 @@ namespace SagaStateMachine.Service.StateMachines
         public State OrderFailed { get; private set; }
         public State UserReceived { get; private set; }
 
-        public State ShippingCreated { get; private set; }
-        public State ShippingCompleted { get; private set; }
-        public State ShippingFailed { get; private set; }
 
 
 
@@ -47,10 +43,6 @@ namespace SagaStateMachine.Service.StateMachines
         public Event<OrderCompletedEvent> OrderCompletedEvent { get; private set; }
         public Event<GetAddressDetailResponseEvent> GetAddressDetailResponseEvent { get; private set; }
         public Event<GetUserDetailResponseEvent> GetUserDetailResponseEvent { get; private set; }
-
-        public Event<ShippingCreatedEvent> ShippingCreatedEvent { get; private set; }
-        public Event<ShippingCompletedEvent> ShippingCompletedEvent { get; private set; }
-        public Event<ShippingFailedEvent> ShippingFailedEvent { get; private set; }
 
 
         public OrderStateMachine()
@@ -99,14 +91,6 @@ namespace SagaStateMachine.Service.StateMachines
             Event(() => GetUserDetailResponseEvent,
                 x => x.CorrelateById(ctx => ctx.Message.CorrelationId));
 
-            Event(() => ShippingCreatedEvent,
-                x => x.CorrelateById(ctx => ctx.Message.CorrelationId));
-
-            Event(() => ShippingCompletedEvent,
-                x => x.CorrelateById(ctx => ctx.Message.CorrelationId));
-
-            Event(() => ShippingFailedEvent,
-                x => x.CorrelateById(ctx => ctx.Message.CorrelationId));
 
 
             // 2) Durum geçişleri (Initially, During blokları):
@@ -255,40 +239,8 @@ namespace SagaStateMachine.Service.StateMachines
             );
 
 
-            // **ShippingCreated** durumunda ShippingCompletedEvent veya ShippingFailedEvent bekleniyor
-            During(ShippingCreated,
-                When(ShippingCompletedEvent)
-                    .Then(context =>
-                    {
-                        context.Instance.IsShippingCompleted = true;
-                        context.Instance.ShippingId = context.Data.ShippingId;
-                    })
-                    .TransitionTo(ShippingCompleted)
-                    // Sipariş tamamlandı olarak Order servisine bildir
-                    .Send(new Uri($"queue:{RabbitMQSettings.Order_OrderCompletedQueue}"),
-                          context => new OrderCompletedEvent(context.Data.CorrelationId)
-                          {
-                              OrderId = context.Instance.OrderId
-                          }),
-
-                When(ShippingFailedEvent)
-                    .Then(context =>
-                    {
-                        context.Instance.IsShippingFailed = true;
-                        context.Instance.ShippingId = context.Data.ShippingId;
-                    })
-                    .TransitionTo(ShippingFailed)
-                    // Sipariş başarısız olarak Order servisine bildir
-                    .Send(new Uri($"queue:{RabbitMQSettings.Order_OrderFailedQueue}"),
-                          context => new OrderFailEvent(context.Data.CorrelationId)
-                          {
-                              OrderId = context.Instance.OrderId,
-                              Message = "Kargo işlemi başarısız oldu."
-                          })
-            );
-
-            // **ShippingCompleted** durumunda ek işlem yapılabilir
-            During(ShippingCompleted,
+            // **OrderCreated** durumunda OrderCompletedEvent geldiğinde OrderCompleted durumuna geçiş
+            During(OrderCreated,
                 When(OrderCompletedEvent)
                     .Then(context =>
                     {
@@ -296,23 +248,12 @@ namespace SagaStateMachine.Service.StateMachines
                         context.Instance.AddressId = context.Data.AddressId;
                     })
                     .TransitionTo(OrderCompleted)
-                    // Kullanıcı bilgilerini almak için User.API'ye mesaj gönder
+                    // Önce kullanıcı bilgilerini almak için User.API'ye mesaj gönder
                     .Send(new Uri($"queue:{RabbitMQSettings.GetUserDetailRequestEvent}"),
                           context => new GetUserDetailRequestEvent(context.Data.CorrelationId)
                           {
                               UserId = context.Instance.UserId
                           })
-            );
-
-            // **ShippingFailed** durumunda OrderFailEvent'i ele alma
-            During(ShippingFailed,
-                When(OrderFailEvent)
-                    .Then(context =>
-                    {
-                        context.Instance.IsOrderFailed = true;
-                    })
-                    .TransitionTo(OrderFailed)
-                    .Finalize()
             );
 
 

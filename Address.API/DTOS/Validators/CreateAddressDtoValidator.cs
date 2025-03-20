@@ -1,13 +1,15 @@
 ﻿
-using Address.API.DTOS.Address;
 using FluentValidation;
 
 namespace Address.API.DTOS.Validators
 {
     public class CreateAddressDtoValidator : AbstractValidator<CreateAddressDTO>
     {
+        
         public CreateAddressDtoValidator()
         {
+            RuleFor(x => x.UserId)
+                .NotEmpty().WithMessage("başlık alanı boş olamaz");
 
             RuleFor(x => x.Title)
                 .NotEmpty().WithMessage("başlık alanı boş olamaz");

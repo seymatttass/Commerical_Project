@@ -34,11 +34,18 @@ namespace Category.API.Controllers
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateCategoryDTO createCategoryDto)
         {
+            // Aynı isme sahip bir kategori olup olmadığını kontrol et
+            var existingCategory = await _categoryService.GetAllAsync();
+            if (existingCategory.Any(c => c.Name.Equals(createCategoryDto.Name, StringComparison.OrdinalIgnoreCase)))
+            {
+                return BadRequest($"'{createCategoryDto.Name}' adıyla zaten bir kategori mevcut.");
+            }
+
             var result = await _categoryService.AddAsync(createCategoryDto);
 
             if (result != null)
             {
-                var categoryCreatedEvent = new CategoryCreatedEvent(Guid.NewGuid()) // Burada CorrelationId gerekmiyor
+                var categoryCreatedEvent = new CategoryCreatedEvent(Guid.NewGuid())
                 {
                     CategoryId = result.Id,
                     Name = result.Name,
@@ -51,6 +58,7 @@ namespace Category.API.Controllers
 
             return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
         }
+
 
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] UpdateCategoryDTO updateCategoryDto)
