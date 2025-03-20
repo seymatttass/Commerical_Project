@@ -27,6 +27,27 @@ namespace SagaStateMachine.Service.Migrations
                     b.Property<Guid>("CorrelationId")
                         .HasColumnType("uuid");
 
+                    b.Property<int>("AddressId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("AddressText")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("Birthdate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("CargoCompanyName")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("City")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Country")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("timestamp with time zone");
 
@@ -34,8 +55,78 @@ namespace SagaStateMachine.Service.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("District")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("EstimatedDays")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("FreeShipping")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsOrderCompleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsOrderCreated")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsOrderFailed")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsPaymentCompleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsPaymentFailed")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsShippingCompleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsShippingCreated")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsShippingFailed")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsStockNotReserved")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsStockReserved")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<int>("OrderId")
                         .HasColumnType("integer");
+
+                    b.Property<string>("PostalCode")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("ShippingCharge")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("ShippingId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Surname")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("TelNo")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<decimal>("TotalPrice")
                         .ValueGeneratedOnAdd()
@@ -44,6 +135,10 @@ namespace SagaStateMachine.Service.Migrations
 
                     b.Property<int>("UserId")
                         .HasColumnType("integer");
+
+                    b.Property<string>("Username")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.HasKey("CorrelationId");
 

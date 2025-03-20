@@ -1,6 +1,5 @@
 ﻿using Address.API.Data.Entities;
 using Address.API.Data.Repository;
-using Address.API.DTOS.Address;
 using AutoMapper;
 namespace Address.API.services
 {

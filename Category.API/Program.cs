@@ -9,9 +9,7 @@ using Microsoft.EntityFrameworkCore;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-
 builder.Services.AddControllers();
-
 
 // DbContext configuration
 builder.Services.AddDbContext<CategoryDbContext>(options =>
@@ -32,6 +30,15 @@ builder.Services.AddValidatorsFromAssemblyContaining<UpdateCategoryDtoValidator>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// MassTransit'i eklemeden önce Build() yapmayýn
+builder.Services.AddMassTransit(configurator =>
+{
+    configurator.UsingRabbitMq((context, _configure) =>
+    {
+        _configure.Host(builder.Configuration["RabbitMQ"]);
+    });
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -40,17 +47,6 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
-builder.Services.AddMassTransit(configurator =>
-{
-
-    configurator.UsingRabbitMq((context, _configure) =>
-    {
-        _configure.Host(builder.Configuration["RabbitMQ"]);
-
-    });
-});
-
 
 app.UseHttpsRedirection();
 

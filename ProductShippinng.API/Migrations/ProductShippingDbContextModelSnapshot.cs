@@ -7,7 +7,7 @@ using ProductShippinng.API.Data;
 
 #nullable disable
 
-namespace ProductShippinng.API.Migrations
+namespace ProductShipping.API.Migrations
 {
     [DbContext(typeof(ProductShippingDbContext))]
     partial class ProductShippingDbContextModelSnapshot : ModelSnapshot

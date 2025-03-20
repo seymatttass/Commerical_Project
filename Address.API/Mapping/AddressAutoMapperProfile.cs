@@ -1,5 +1,4 @@
 ﻿using Address.API.Data.Entities;
-using Address.API.DTOS.Address;
 using AutoMapper;
 
 namespace Address.API.Mapping

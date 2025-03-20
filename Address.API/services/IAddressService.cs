@@ -1,5 +1,4 @@
 ﻿using Address.API.Data.Entities;
-using Address.API.DTOS.Address;
 
 namespace Address.API.services
 {

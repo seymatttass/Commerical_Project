@@ -9,6 +9,9 @@ namespace Address.API.Data.Entities
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         [Required]
         public int Id { get; set; }
+
+        [Required]
+        public int UserId { get; set; } 
         public string Title { get; set; }
         public string Country { get; set; }
         public string City { get; set; }
