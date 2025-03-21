@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Order.API.Migrations
 {
     /// <inheritdoc />
-    public partial class migr11 : Migration
+    public partial class orderdb_create : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

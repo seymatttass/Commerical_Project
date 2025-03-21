@@ -3,27 +3,26 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace InvoiceDetails.Migrations
+namespace Stock.API.Migrations
 {
     /// <inheritdoc />
-    public partial class migr11 : Migration
+    public partial class stockdb_create : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "InvoiceDetailss",
+                name: "Stocks",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    InvoiceId = table.Column<int>(type: "integer", nullable: false),
-                    OrderItemId = table.Column<int>(type: "integer", nullable: false),
-                    ProductId = table.Column<int>(type: "integer", nullable: false)
+                    ProductId = table.Column<int>(type: "integer", nullable: false),
+                    Count = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_InvoiceDetailss", x => x.Id);
+                    table.PrimaryKey("PK_Stocks", x => x.Id);
                 });
         }
 
@@ -31,7 +30,7 @@ namespace InvoiceDetails.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "InvoiceDetailss");
+                name: "Stocks");
         }
     }
 }

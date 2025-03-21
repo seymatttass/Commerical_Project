@@ -11,8 +11,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Address.API.Migrations
 {
     [DbContext(typeof(AddressDbContext))]
-    [Migration("20250320083703_migr112")]
-    partial class migr112
+    [Migration("20250320115922_addressdb_create")]
+    partial class addressdb_create
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

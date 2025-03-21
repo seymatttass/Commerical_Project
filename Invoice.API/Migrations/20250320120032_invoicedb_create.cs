@@ -1,31 +1,31 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+﻿using System;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace Shipping.API.Migrations
+namespace Invoice.API.Migrations
 {
     /// <inheritdoc />
-    public partial class miggr1 : Migration
+    public partial class invoicedb_create : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "Shippings",
+                name: "Invoices",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    CargoCompanyName = table.Column<int>(type: "integer", nullable: false),
-                    Active = table.Column<bool>(type: "boolean", nullable: false),
-                    Shipcharge = table.Column<int>(type: "integer", nullable: false),
-                    free = table.Column<bool>(type: "boolean", nullable: false),
-                    EstimatedDays = table.Column<int>(type: "integer", nullable: false)
+                    OrderId = table.Column<int>(type: "integer", nullable: false),
+                    Date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    Cargoficheno = table.Column<int>(type: "integer", nullable: false),
+                    TotalPrice = table.Column<decimal>(type: "numeric", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Shippings", x => x.Id);
+                    table.PrimaryKey("PK_Invoices", x => x.Id);
                 });
         }
 
@@ -33,7 +33,7 @@ namespace Shipping.API.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "Shippings");
+                name: "Invoices");
         }
     }
 }

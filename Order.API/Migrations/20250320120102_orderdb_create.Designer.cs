@@ -12,8 +12,8 @@ using Order.API.Data;
 namespace Order.API.Migrations
 {
     [DbContext(typeof(OrderDbContext))]
-    [Migration("20250319121722_migr11")]
-    partial class migr11
+    [Migration("20250320120102_orderdb_create")]
+    partial class orderdb_create
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

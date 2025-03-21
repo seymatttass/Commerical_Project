@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace SagaStateMachine.Service.Migrations
 {
     /// <inheritdoc />
-    public partial class miggr1 : Migration
+    public partial class sagadb_create : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -40,15 +40,7 @@ namespace SagaStateMachine.Service.Migrations
                     Surname = table.Column<string>(type: "text", nullable: false),
                     Email = table.Column<string>(type: "text", nullable: false),
                     Birthdate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    TelNo = table.Column<string>(type: "text", nullable: false),
-                    IsShippingCreated = table.Column<bool>(type: "boolean", nullable: false),
-                    IsShippingCompleted = table.Column<bool>(type: "boolean", nullable: false),
-                    IsShippingFailed = table.Column<bool>(type: "boolean", nullable: false),
-                    ShippingId = table.Column<int>(type: "integer", nullable: false),
-                    CargoCompanyName = table.Column<int>(type: "integer", nullable: false),
-                    ShippingCharge = table.Column<int>(type: "integer", nullable: false),
-                    FreeShipping = table.Column<bool>(type: "boolean", nullable: false),
-                    EstimatedDays = table.Column<int>(type: "integer", nullable: false)
+                    TelNo = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
