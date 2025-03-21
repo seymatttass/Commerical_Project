@@ -21,7 +21,7 @@ namespace Shared.Events.BasketEvents
         public int Count { get; set; }
         public decimal TotalPrice { get; set; }
         public string Name { get; set; }
-        public List<OrderItemMessage> OrderItems { get; set; } //BURAYA BAKMAMIZ LAZIMM
+        public List<OrderItemMessage> OrderItems { get; set; }
 
     }
 }

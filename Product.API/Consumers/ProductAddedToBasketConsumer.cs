@@ -22,17 +22,8 @@ namespace SagaStateMachine.Service.Consumers
             var message = context.Message;
             _logger.LogInformation($"Saga tarafından ürün sepete ekleniyor: {message.Name}, Miktar: {message.Count}");
 
-            // **Saga tamamlandıktan sonra `BasketItemCompletedEvent` tetiklenmeli**
-            BasketItemCompletedEvent completedEvent = new(message.CorrelationId)
-            {
-                ProductId = message.ProductId,
-                UserId = message.UserId,
-                Count = message.Count,
-                TotalPrice = message.Price * message.Count,
-                Name = message.Name
-            };
-
-            await context.Publish(completedEvent);
+            // BasketItemCompletedEvent'i burada yayınlamamalısın
+            // Bu event StockReservedEvent'ten sonra State Machine tarafından tetiklenmeli
         }
     }
 }

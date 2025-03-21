@@ -37,9 +37,6 @@ namespace SagaStateMachine.Service.Migrations
                     b.Property<DateTime?>("Birthdate")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("CargoCompanyName")
-                        .HasColumnType("integer");
-
                     b.Property<string>("City")
                         .IsRequired()
                         .HasColumnType("text");
@@ -63,12 +60,6 @@ namespace SagaStateMachine.Service.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<int>("EstimatedDays")
-                        .HasColumnType("integer");
-
-                    b.Property<bool>("FreeShipping")
-                        .HasColumnType("boolean");
-
                     b.Property<bool>("IsOrderCompleted")
                         .HasColumnType("boolean");
 
@@ -82,15 +73,6 @@ namespace SagaStateMachine.Service.Migrations
                         .HasColumnType("boolean");
 
                     b.Property<bool>("IsPaymentFailed")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("IsShippingCompleted")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("IsShippingCreated")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("IsShippingFailed")
                         .HasColumnType("boolean");
 
                     b.Property<bool>("IsStockNotReserved")
@@ -109,12 +91,6 @@ namespace SagaStateMachine.Service.Migrations
                     b.Property<string>("PostalCode")
                         .IsRequired()
                         .HasColumnType("text");
-
-                    b.Property<int>("ShippingCharge")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("ShippingId")
-                        .HasColumnType("integer");
 
                     b.Property<string>("Surname")
                         .IsRequired()

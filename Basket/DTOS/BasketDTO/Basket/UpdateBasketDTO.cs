@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Basket.API.Data.Entities;
+using System.ComponentModel.DataAnnotations;
 
 namespace Basket.API.DTOS.BasketDTO.Basket
 {
@@ -15,5 +16,7 @@ namespace Basket.API.DTOS.BasketDTO.Basket
         [Required]
         [Range(0, double.MaxValue, ErrorMessage = "Total price must be a positive value.")]
         public decimal TotalPrice { get; set; } 
+
+        public List<BasketItem> BasketItems { get; set; } = new List<BasketItem>();
     }
 }

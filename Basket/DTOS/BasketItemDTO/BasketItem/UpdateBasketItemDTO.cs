@@ -8,7 +8,7 @@ namespace Basket.API.DTOS
         public int Id { get; set; } 
 
         [Required]
-        public int BasketId { get; set; }  
+        public int ProductId { get; set; }  
 
         [Required]
         [Range(0.01, double.MaxValue, ErrorMessage = "Price must be greater than 0.")]

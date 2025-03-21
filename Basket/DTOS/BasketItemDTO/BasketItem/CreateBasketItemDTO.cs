@@ -5,7 +5,7 @@ namespace Basket.API.DTOS
     public class CreateBasketItemDTO
     {
         [Required]
-        public int BasketId { get; set; }  // Hangi sepete ait olduğunu belirtir
+        public int ProductId { get; set; }  // Hangi sepete ait olduğunu belirtir
 
         [Required]
         [Range(0.01, double.MaxValue, ErrorMessage = "Price must be greater than 0.")]

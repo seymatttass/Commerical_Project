@@ -1,15 +1,14 @@
-﻿using Basket.API.Data;
-using Basket.API.Data.Entities;
+﻿using Basket.API.Data.Entities;
 using Basket.API.DTOS;
 using Basket.API.DTOS.BasketDTO.Basket;
 using Basket.API.Services.BasketServices;
 using Basket.API.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Shared.Events.BasketEvents;
+using MassTransit;
 
 namespace Basket.API.Controllers
 {
@@ -19,11 +18,15 @@ namespace Basket.API.Controllers
     {
         private readonly IBasketService _basketService;
         private readonly IBasketItemService _basketItemService;
+        private readonly IPublishEndpoint _publishEndpoint;
 
-        public BasketController(IBasketService basketService, IBasketItemService basketItemService)
+    
+
+        public BasketController(IBasketService basketService, IBasketItemService basketItemService, IPublishEndpoint publishEndpoint)
         {
             _basketService = basketService;
             _basketItemService = basketItemService;
+            _publishEndpoint = publishEndpoint;
         }
 
         // GET: api/Basket
@@ -67,7 +70,7 @@ namespace Basket.API.Controllers
         [HttpPost]
         public async Task<ActionResult<Baskett>> CreateBasket(CreateBasketDTO basketDto)
         {
-            // Calculate total price for security
+            // Güvenlik için toplam fiyatı hesapla
             decimal calculatedTotalPrice = 0;
 
             if (basketDto.BasketItems != null)
@@ -79,28 +82,33 @@ namespace Basket.API.Controllers
             }
 
             var basket = await _basketService.AddAsync(basketDto);
-
             return CreatedAtAction(nameof(GetBasket), new { id = basket.ID }, basket);
         }
+
 
         // POST: api/Basket/items
         [HttpPost("items")]
         public async Task<ActionResult<BasketItem>> AddBasketItem(CreateBasketItemDTO itemDto)
         {
-            if (itemDto.BasketId <= 0)
+            // ProductId artık CreateBasketItemDTO içinde tanımlanmalı
+            if (itemDto.ProductId <= 0)
             {
-                return BadRequest("BasketId is required when adding items separately");
-            }
-
-            var basket = await _basketService.GetByIdAsync(itemDto.BasketId);
-            if (basket == null)
-            {
-                return NotFound("Basket not found");
+                return BadRequest("ProductId is required");
             }
 
             var basketItem = await _basketItemService.AddAsync(itemDto);
 
-            return CreatedAtAction("GetBasketItem", new { id = basketItem.ID }, basketItem);
+            // Sepet öğesi eklendiğinde event'i yayınla
+            var productAddedEvent = new ProductAddedToBasketRequestEvent(Guid.NewGuid())
+            {
+                ProductId = basketItem.ProductId,
+                Count = basketItem.Count,
+                Price = basketItem.Price
+            };
+
+            await _publishEndpoint.Publish(productAddedEvent);
+
+            return CreatedAtAction("GetBasketItem", "BasketItem", new { id = basketItem.ID }, basketItem);
         }
 
         // GET: api/Basket/items/5
@@ -117,40 +125,16 @@ namespace Basket.API.Controllers
             return Ok(basketItem);
         }
 
-        // GET: api/Basket/{basketId}/items
-        [HttpGet("{basketId}/items")]
-        public async Task<ActionResult<IEnumerable<BasketItem>>> GetBasketItems(int basketId)
-        {
-            var basket = await _basketService.GetByIdAsync(basketId);
-
-            if (basket == null)
-            {
-                return NotFound("Basket not found");
-            }
-
-            var basketItems = await _basketItemService.GetByBasketIdAsync(basketId);
-            return Ok(basketItems);
-        }
-
         // PUT: api/Basket/items/5
         [HttpPut("items/{id}")]
-        public async Task<IActionResult> UpdateBasketItem(int id, CreateBasketItemDTO itemDto)
+        public async Task<IActionResult> UpdateBasketItem(int id, UpdateBasketItemDTO itemDto)
         {
-            var basketItem = await _basketItemService.GetByIdAsync(id);
-            if (basketItem == null)
+            if (id != itemDto.Id)
             {
-                return NotFound();
+                return BadRequest("ID mismatch");
             }
 
-            var updateDto = new UpdateBasketItemDTO
-            {
-                Id = id,
-                BasketId = itemDto.BasketId,
-                Price = itemDto.Price,
-                Count = itemDto.Count
-            };
-
-            var success = await _basketItemService.UpdateAsync(updateDto);
+            var success = await _basketItemService.UpdateAsync(itemDto);
 
             if (!success)
             {
@@ -223,8 +207,8 @@ namespace Basket.API.Controllers
                 return BadRequest("Cannot checkout an empty basket");
             }
 
-            // Here you could implement checkout logic (payment processing, order creation)
-            // For now, we simply delete the basket
+            // Burada ödeme işlemi ve sipariş oluşturma mantığı eklenebilir
+            // Şimdilik sepeti siliyoruz
             var success = await _basketService.DeleteAsync(id);
 
             if (!success)

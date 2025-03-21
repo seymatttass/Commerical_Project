@@ -6,7 +6,6 @@ namespace Basket.API.DTOS.BasketDTO.Basket
     public class CreateBasketDTO
     {
         public int UserId { get; set; }
-        public int StockId { get; set; }
         public List<BasketItem> BasketItems { get; set; }
 
     }

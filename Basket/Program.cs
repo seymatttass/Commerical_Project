@@ -10,6 +10,7 @@ using Basket.API.DTOS.Validators;
 using Basket.API.Services.BasketServices;
 using Basket.API.Services;
 using MassTransit;
+using Shared.Events.BasketEvents;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,16 +28,15 @@ builder.Services.AddStackExchangeRedisCache(options =>
 
 builder.Services.AddMassTransit(configurator =>
 {
-    //configurator.AddConsumer<OrderCreatedEventConsumer>();
-
     configurator.UsingRabbitMq((context, _configure) =>
     {
         _configure.Host(builder.Configuration["RabbitMQ"]);
 
-       // _configure.ReceiveEndpoint(RabbitMQSettings.Order_OrderCreatedQueue, e =>
-        //e.ConfigureConsumer<OrderCreatedEventConsumer>(context));
-
-
+        // Basket_ProductAddedToBasketQueue kuyruðuna gönderim yapýlandýrmasý
+        _configure.Send<ProductAddedToBasketRequestEvent>(x =>
+        {
+            x.UseRoutingKeyFormatter(context => "Basket_ProductAddedToBasketQueue");
+        });
     });
 });
 

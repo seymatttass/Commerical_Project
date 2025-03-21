@@ -7,7 +7,6 @@ namespace Basket.API.Services
 {
     public interface IBasketItemService
     {
-        Task<IEnumerable<BasketItem>> GetByBasketIdAsync(int basketId);
         Task<BasketItem> GetByIdAsync(int itemId);
         Task<BasketItem> AddAsync(CreateBasketItemDTO createBasketItemDto);
         Task<bool> UpdateAsync(UpdateBasketItemDTO updateBasketItemDto);
