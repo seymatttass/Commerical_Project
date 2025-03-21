@@ -20,7 +20,7 @@ builder.Services.AddMassTransit(configurator =>
         {
             _builder.UseNpgsql(builder.Configuration.GetConnectionString
 
-                ("DefaultConnection"));
+                ("PostgreSQL"));
 
         });
     });
