@@ -22,7 +22,7 @@ builder.Services.AddAutoMapper(typeof(Program));
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 
-// Validator'larý kaydedin
+// Validator'larÃ½ kaydedin
 builder.Services.AddValidatorsFromAssemblyContaining<CreateCategoryDtoValidator>();
 builder.Services.AddValidatorsFromAssemblyContaining<UpdateCategoryDtoValidator>();
 
@@ -30,7 +30,7 @@ builder.Services.AddValidatorsFromAssemblyContaining<UpdateCategoryDtoValidator>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// MassTransit'i eklemeden önce Build() yapmayýn
+// MassTransit'i eklemeden Ã¶nce Build() yapmayÃ½n
 builder.Services.AddMassTransit(configurator =>
 {
     configurator.UsingRabbitMq((context, _configure) =>

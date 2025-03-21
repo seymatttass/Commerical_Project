@@ -3,7 +3,6 @@ using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 
 
-
 namespace Category.API.Data.Repository
 {
     public class CategoryRepository : ICategoryRepository

@@ -2,6 +2,7 @@
 
 namespace Category.API.Data.Repository
 {
+
     public interface ICategoryRepository
     {
         Task<Entities.Category> GetByIdAsync(int id);
