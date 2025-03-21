@@ -41,6 +41,8 @@ builder.Services.AddMassTransit(configurator =>
     configurator.AddConsumer<StockRollbackMessageConsumer>();
     configurator.AddConsumer<StockCheckedEventConsumer>();
 
+    //eklendi
+
     configurator.UsingRabbitMq((context, _configure) =>
     {
         _configure.Host(builder.Configuration["RabbitMQ"]);
