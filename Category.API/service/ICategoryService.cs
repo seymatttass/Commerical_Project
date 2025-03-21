@@ -1,5 +1,5 @@
 ﻿using Category.API.DTOS.Category;
-//1
+
 namespace Category.API.services
 {
     public interface ICategoryService

@@ -7,7 +7,7 @@ namespace Category.API.Data
         public CategoryDbContext(DbContextOptions options) : base(options)
         {
         }
-        //1
+
         public DbSet<Entities.Category> Categories { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

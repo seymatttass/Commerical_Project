@@ -1,7 +1,6 @@
 ﻿using Category.API.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
-//1
 
 
 namespace Category.API.Data.Repository

@@ -5,7 +5,9 @@ using Microsoft.AspNetCore.Mvc;
 using Shared.Events.CategoryEvents;
 using System;
 using System.Threading.Tasks;
-//1
+
+
+
 namespace Category.API.Controllers
 {
     [ApiController]
