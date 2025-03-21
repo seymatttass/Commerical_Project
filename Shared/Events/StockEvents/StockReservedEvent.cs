@@ -12,5 +12,8 @@ namespace Shared.Events.StockEvents
             CorrelationId = correlationId;
         }
         public List<OrderItemMessage> OrderItems { get; set; }
+
+
     }
 }
+

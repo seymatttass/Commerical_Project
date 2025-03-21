@@ -25,18 +25,6 @@ namespace Basket.API.Services
             _logger = logger;
         }
 
-        public async Task<IEnumerable<BasketItem>> GetByBasketIdAsync(int basketId)
-        {
-            try
-            {
-                return await _basketItemRepository.GetByBasketIdAsync(basketId);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Error while getting items for basket {basketId}");
-                throw;
-            }
-        }
 
         public async Task<BasketItem> GetByIdAsync(int itemId)
         {

@@ -1,6 +1,5 @@
 ﻿using MassTransit;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Primitives;
 using Shared.Events.OrderCreatedEvent;
 using Shared.Events.StockEvents;
 using Shared.Settings;
@@ -12,53 +11,47 @@ namespace Stock.API.Consumers
     {
         public async Task Consume(ConsumeContext<OrderCreatedEvent> context)
         {
-            // tüm siparişlere,ürünlere bakıp stok sağlanıyor ise stok ile ilgili gerekli güncellemeleri sağlıyoruz
-            // stok sağlanmıyorsa stoknotreserved i publish ederiz yayınlarız.
-            List<bool> stockResults = new();
+            // Bu consumer sadece stok arttırma/azaltma işlemleri için kullanılacak
+            // Stok kontrol işlemi başka consumer'da yapılacak
 
-            //siparişte her bir talep edilen ürüne karşılık db de bu ürünü bulup
-            //bunun counutunu değeerlendiricez.siparişteki talep edilenden fazlamı karşılanıyor mu 
-            foreach (var orderItem in context.Message.OrderItems)
+            try
             {
-                var stockExists = await stockDbContext.Stocks
-                    .AnyAsync(s => s.ProductId == orderItem.ProductId && s.Count >= orderItem.Count);
-                stockResults.Add(stockExists);
-            }
-
-            //stokresults içini kontrol edicez eğer tüm değerler true ise ona göre stoğu güncelleyeceğiz ,
-            // biri bile false gelirse stoknotreserved i publis edicez ve bu evente subscribe olan ilgili serviselrde ona göre davranışlarını yönetecekler.
-
-            var sendEndpoint = await sendEndpointProvider.GetSendEndpoint(new Uri($"queue:{RabbitMQSettings.StateMachineQueue}"));
-
-            if (stockResults.TrueForAll(s => s.Equals(true)))
-            {
+                // Ürünlerin stok miktarını azalt
                 foreach (var orderItem in context.Message.OrderItems)
                 {
-                    //db deki ilgili verileri elde edelim.
                     var stock = await stockDbContext.Stocks
                         .FirstOrDefaultAsync(s => s.ProductId == orderItem.ProductId);
-                      stock.Count -= orderItem.Count;
+
+                    if (stock != null)
+                    {
+                        stock.Count -= orderItem.Count;
+                    }
                 }
 
                 await stockDbContext.SaveChangesAsync();
 
+                // Stok başarıyla azaltıldı, ilgili event'i gönder
+                var sendEndpoint = await sendEndpointProvider.GetSendEndpoint(new Uri($"queue:{RabbitMQSettings.StateMachineQueue}"));
+
                 StockReservedEvent stockReservedEvent = new(context.Message.CorrelationId)
                 {
                     OrderItems = context.Message.OrderItems,
-
                 };
+
                 await sendEndpoint.Send(stockReservedEvent);
             }
-            //stokda problem varsa:
-            else
+            catch (Exception ex)
             {
+                // Stok azaltma sırasında bir hata oluştu
+                var sendEndpoint = await sendEndpointProvider.GetSendEndpoint(new Uri($"queue:{RabbitMQSettings.StateMachineQueue}"));
+
                 StockNotReservedEvent stockNotReservedEvent = new(context.Message.CorrelationId)
                 {
-                    Message = "Stok yetersiz..."
+                    Message = $"Stok azaltma işlemi sırasında hata: {ex.Message}"
                 };
+
                 await sendEndpoint.Send(stockNotReservedEvent);
             }
-
         }
     }
 }

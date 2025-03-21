@@ -6,7 +6,6 @@ namespace Basket.API.Data.Repository
 {
     public interface IBasketItemRepository
     {
-        Task<IEnumerable<BasketItem>> GetByBasketIdAsync(int basketId);
         Task<BasketItem> GetByIdAsync(int itemId);
         Task AddAsync(BasketItem basketItem);
         Task<bool> RemoveAsync(int itemId);
