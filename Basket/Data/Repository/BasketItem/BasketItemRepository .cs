@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System;
+using Basket.API.DTOS.BasketDTO;
 
 namespace Basket.API.Data.Repository
 {
@@ -17,6 +18,22 @@ namespace Basket.API.Data.Repository
             _redisCache = redisCache;
         }
 
+
+        public async Task<BasketItem> AddToBasketAsync(int basketId, AddToBasketItemDTO dto)
+        {
+            var basketItem = new BasketItem
+            {
+                ProductId = dto.ProductId,
+                Count = dto.Count,
+                Price = dto.Price,
+                BasketID = basketId // Repository içinde BasketID'yi set edin
+            };
+
+            await AddAsync(basketItem);
+            return basketItem;
+        }
+
+        
         private string GetBasketItemKey(int id)
         {
             return $"{_basketItemPrefix}{id}";

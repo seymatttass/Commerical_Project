@@ -12,24 +12,25 @@ var builder = Host.CreateApplicationBuilder(args);
 builder.Services.AddHostedService<Worker>();
 builder.Services.AddMassTransit(configurator =>
 {
-
+    // Saga State Machine ve Repository konfigürasyonu
     configurator.AddSagaStateMachine<OrderStateMachine, OrderStateInstance>()
-    .EntityFrameworkRepository(options =>
-    {
-        options.AddDbContext<DbContext, OrderStateDbContext>((provider, _builder) =>
+        .EntityFrameworkRepository(options =>
         {
-            _builder.UseNpgsql(builder.Configuration.GetConnectionString
-
-                ("PostgreSQL"));
-
+            options.AddDbContext<DbContext, OrderStateDbContext>((provider, _builder) =>
+            {
+                _builder.UseNpgsql(builder.Configuration.GetConnectionString("PostgreSQL"));
+            });
         });
-    });
 
     configurator.UsingRabbitMq((context, _configure) =>
     {
+        
         _configure.Host(builder.Configuration["RabbitMQ"]);
 
-        _configure.ReceiveEndpoint(RabbitMQSettings.StateMachineQueue, e => e.ConfigureSaga<OrderStateInstance>(context));
+        _configure.ReceiveEndpoint(RabbitMQSettings.StateMachineQueue, e =>
+        {
+            e.ConfigureSaga<OrderStateInstance>(context);
+        });
     });
 });
 

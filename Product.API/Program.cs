@@ -15,7 +15,7 @@ using Shared.Settings;
 
 using Product.API.service.ProductService;
 using MassTransit;
-using SagaStateMachine.Service.Consumers;
+//using SagaStateMachine.Service.Consumers;
 using Product.API.Consumers;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -41,14 +41,14 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddMassTransit(configurator =>
 {
     configurator.AddConsumer<CategoryEventConsumer>();
-    configurator.AddConsumer<ProductAddedToBasketConsumer>();
+    //configurator.AddConsumer<ProductAddedToBasketConsumer>();
 
     configurator.UsingRabbitMq((context, _configure) =>
     {
         _configure.Host(builder.Configuration["RabbitMQ"]);
 
-        _configure.ReceiveEndpoint(RabbitMQSettings.Basket_ProductAddedToBasketQueue, e =>
-        e.ConfigureConsumer<ProductAddedToBasketConsumer>(context));
+        //_configure.ReceiveEndpoint(RabbitMQSettings.Basket_ProductAddedToBasketQueue, e =>
+        //e.ConfigureConsumer<ProductAddedToBasketConsumer>(context));
 
         _configure.ReceiveEndpoint(RabbitMQSettings.Category_CategoryEventQueue, e =>
         e.ConfigureConsumer<CategoryEventConsumer>(context));

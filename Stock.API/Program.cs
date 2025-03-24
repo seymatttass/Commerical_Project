@@ -40,19 +40,15 @@ builder.Services.AddMassTransit(configurator =>
     configurator.AddConsumer<OrderCreatedEventConsumer>();
     configurator.AddConsumer<StockRollbackMessageConsumer>();
     configurator.AddConsumer<StockCheckedEventConsumer>();
-
     configurator.UsingRabbitMq((context, _configure) =>
     {
         _configure.Host(builder.Configuration["RabbitMQ"]);
-
         _configure.ReceiveEndpoint(RabbitMQSettings.Order_OrderCreatedQueue, e =>
-        e.ConfigureConsumer<OrderCreatedEventConsumer>(context));
-
+            e.ConfigureConsumer<OrderCreatedEventConsumer>(context));
         _configure.ReceiveEndpoint(RabbitMQSettings.Stock_RollbackMessageQueue, e =>
-        e.ConfigureConsumer<StockRollbackMessageConsumer>(context));
-
+            e.ConfigureConsumer<StockRollbackMessageConsumer>(context));
         _configure.ReceiveEndpoint(RabbitMQSettings.Stock_CheckStockQueue, e =>
-        e.ConfigureConsumer<StockCheckedEventConsumer>(context));
+            e.ConfigureConsumer<StockCheckedEventConsumer>(context));
     });
 });
 
