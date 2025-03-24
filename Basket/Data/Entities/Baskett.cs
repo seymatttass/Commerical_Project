@@ -1,6 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
-
 namespace Basket.API.Data.Entities
 {
     public class Baskett
@@ -11,6 +10,5 @@ namespace Basket.API.Data.Entities
         public int UserId { get; set; }
         public decimal TotalPrice { get; set; }
         public List<BasketItem> BasketItems { get; set; } = new List<BasketItem>();
-
     }
 }
