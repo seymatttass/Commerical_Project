@@ -41,6 +41,9 @@ namespace SagaStateMachine.Service.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<int>("Count")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Country")
                         .IsRequired()
                         .HasColumnType("text");
@@ -60,27 +63,6 @@ namespace SagaStateMachine.Service.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<bool>("IsOrderCompleted")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("IsOrderCreated")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("IsOrderFailed")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("IsPaymentCompleted")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("IsPaymentFailed")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("IsStockNotReserved")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("IsStockReserved")
-                        .HasColumnType("boolean");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text");
@@ -91,6 +73,12 @@ namespace SagaStateMachine.Service.Migrations
                     b.Property<string>("PostalCode")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<decimal>("Price")
+                        .HasColumnType("numeric");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("integer");
 
                     b.Property<string>("Surname")
                         .IsRequired()

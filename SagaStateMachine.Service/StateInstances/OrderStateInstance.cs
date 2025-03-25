@@ -21,13 +21,9 @@ namespace SagaStateMachine.Service.StateInstances
         public decimal Price { get; set; }
 
 
-        public bool IsStockReserved { get; set; }  
-        public bool IsStockNotReserved { get; set; } 
-        public bool IsPaymentCompleted { get; set; }  
-        public bool IsPaymentFailed { get; set; } 
-        public bool IsOrderCreated { get; set; } 
-        public bool IsOrderFailed { get; set; }
-        public bool IsOrderCompleted { get; set; }
+
+
+
 
 
         // Adres bilgileri için eklenen propertyler

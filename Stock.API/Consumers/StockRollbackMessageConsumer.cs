@@ -12,7 +12,7 @@ namespace Stock.API.Consumers
         {
             // Payment API'de bir ödeme sorunu olursa, Stock API'de yapılmış olan stok işlemlerinin geri alımını gerçekleştiriyoruz
             // Compensable transaction
-            foreach (var basketItem in context.Message.BasketItems) // OrderItems yerine BasketItems kullanın
+            foreach (var basketItem in context.Message.BasketItemMessages) 
             {
                 var stock = await stockDbContext.Stocks
                      .FirstOrDefaultAsync(x => x.ProductId == basketItem.ProductId);

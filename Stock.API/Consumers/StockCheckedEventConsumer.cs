@@ -10,12 +10,13 @@ namespace Stock.API.Consumers
     {
         public async Task Consume(ConsumeContext<StockCheckedEvent> context)
         {
-            // StockCheckedEvent muhtemelen sepetteki bir ürünün stok kontrolü için kullanılıyor
-            // Bu yüzden sadece ilgili ürünün stok kontrolünü yapıyoruz
-            var stockExists = await stockDbContext.Stocks
+            // StockCheckedEvent sepetteki bir ürünün stok kontrolü için 
+            var stockCollection = await stockDbContext.Stocks
                 .AnyAsync(s => s.ProductId == context.Message.ProductId && s.Count >= context.Message.Count);
             var sendEndpoint = await sendEndpointProvider.GetSendEndpoint(new Uri($"queue:{RabbitMQSettings.StateMachineQueue}"));
-            if (stockExists)
+
+
+            if (stockCollection)
             {
                 // Stok yeterli, StockReservedEvent gönder
                 StockReservedEvent stockReservedEvent = new(context.Message.CorrelationId)

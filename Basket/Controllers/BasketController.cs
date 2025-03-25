@@ -72,8 +72,7 @@ namespace Basket.API.Controllers
         {
             // Güvenlik için toplam fiyatı hesapla
             decimal calculatedTotalPrice = 0;
-
-            if (basketDto.BasketItems != null)
+            
             {
                 foreach (var item in basketDto.BasketItems)
                 {
@@ -99,7 +98,7 @@ namespace Basket.API.Controllers
             var basketItem = await _basketItemService.AddAsync(itemDto);
 
             // Sepet öğesi eklendiğinde event'i yayınla
-            var productAddedEvent = new ProductAddedToBasketRequestEvent(Guid.NewGuid())
+            var productAddedEvent = new ProductAddedToBasketRequestEvent()
             {
                 ProductId = basketItem.ProductId,
                 Count = basketItem.Count,
@@ -123,72 +122,6 @@ namespace Basket.API.Controllers
             }
 
             return Ok(basketItem);
-        }
-
-        // PUT: api/Basket/items/5
-        [HttpPut("items/{id}")]
-        public async Task<IActionResult> UpdateBasketItem(int id, UpdateBasketItemDTO itemDto)
-        {
-            if (id != itemDto.Id)
-            {
-                return BadRequest("ID mismatch");
-            }
-
-            var success = await _basketItemService.UpdateAsync(itemDto);
-
-            if (!success)
-            {
-                return BadRequest("Failed to update basket item");
-            }
-
-            return NoContent();
-        }
-
-        // DELETE: api/Basket/items/5
-        [HttpDelete("items/{id}")]
-        public async Task<IActionResult> DeleteBasketItem(int id)
-        {
-            var success = await _basketItemService.DeleteAsync(id);
-
-            if (!success)
-            {
-                return NotFound();
-            }
-
-            return NoContent();
-        }
-
-        // DELETE: api/Basket/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteBasket(int id)
-        {
-            var success = await _basketService.DeleteAsync(id);
-
-            if (!success)
-            {
-                return NotFound();
-            }
-
-            return NoContent();
-        }
-
-        // PUT: api/Basket/5
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateBasket(int id, UpdateBasketDTO basketDto)
-        {
-            if (id != basketDto.Id)
-            {
-                return BadRequest("ID mismatch");
-            }
-
-            var success = await _basketService.UpdateAsync(basketDto);
-
-            if (!success)
-            {
-                return NotFound();
-            }
-
-            return NoContent();
         }
 
         // POST: api/Basket/checkout/5
