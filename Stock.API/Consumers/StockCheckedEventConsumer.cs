@@ -20,14 +20,12 @@ namespace Stock.API.Consumers
                 // Stok yeterli, StockReservedEvent gönder
                 StockReservedEvent stockReservedEvent = new(context.Message.CorrelationId)
                 {
-                    // OrderItems yerine basket'teki bilgileri kullanarak yaklaşımı değiştiriyoruz
-                    OrderItems = new List<OrderItemMessage>
+                    BasketItemMessages = new List<BasketItemMessage>
                     {
-                        new OrderItemMessage
+                        new BasketItemMessage
                         {
                             ProductId = context.Message.ProductId,
                             Count = context.Message.Count
-                            // Diğer gerekli bilgiler varsa eklenebilir
                         }
                     }
                 };

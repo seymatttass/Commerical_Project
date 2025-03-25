@@ -6,10 +6,11 @@ using System.Threading.Tasks;
 
 namespace Shared.Messages
 {
-    public class OrderItemMessage   
+    public class BasketItemMessage   
         {   
             public int ProductId { get; set; }
             public int Count { get; set; }
             public decimal Price { get; set; }
-        }
+            public string Name { get; set; }
+    }
 }

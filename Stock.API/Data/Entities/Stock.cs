@@ -14,7 +14,7 @@ namespace Stock.API.Data.Entities
         public int ProductId { get; set; }
 
         [Required]
-        public int Count { get; set; }  //ürüne ait stok bilgisi.
+        public int Count { get; set; } 
 
     }
 }

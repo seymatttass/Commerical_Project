@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MassTransit;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Shared.Events.OrderCreatedEvent
 {
-    public class OrderCompletedEvent
+    public class OrderCompletedEvent : CorrelatedBy<Guid>
     {
         public OrderCompletedEvent(Guid correlationId)
         {

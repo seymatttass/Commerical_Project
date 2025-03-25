@@ -31,7 +31,8 @@ namespace Shared.Settings
 
         // **Basket (Sepet) Servisi Kuyrukları**
         public const string Basket_ProductAddedToBasketQueue = "basket-add-to-basket-queue"; // Kullanıcı sepete ekleme kuyruğu
-        public const string Basket_BasketItemCompletedQueue = "basket-basket-item-added-queue"; // Ürün sepete eklendi kuyruğu
+        public const string Basket_BasketCompletedEventQueue = "basket-basket-completed-item-added-queue"; // Ürün sepete eklendi kuyruğu
+        public const string Basket_BasketFailedEventQueue = "basket-basket-failed-item-added-queue"; // Ürün sepete eklendi kuyruğu
 
         public const string GetAddressDetailRequestEvent = "address-get-address-request-queue";
         public const string GetAddressDetailResponseEvent = "address-get-address-response-queue";

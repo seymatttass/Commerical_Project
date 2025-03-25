@@ -361,3 +361,13 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+
+# Migrations
+**/Migrations/*
+!**/Migrations/README.md
+
+# AppSettings files
+**/appsettings.json
+**/appsettings.*.json
+!**/appsettings.example.json

@@ -14,6 +14,8 @@ using Shared.Events.BasketEvents;
 using Shared.Settings;
 using Basket.API.Data.ViewModels;
 using Basket.API.Data.Entities;
+using System.Linq;
+using Basket.API.Consumers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -31,16 +33,19 @@ builder.Services.AddStackExchangeRedisCache(options =>
 
 builder.Services.AddMassTransit(configurator =>
 {
+
+    configurator.AddConsumer<BasketCompletedEventConsumer>();
+    configurator.AddConsumer<BasketFailedEventConsumer>();
+
+
     configurator.UsingRabbitMq((context, _configure) =>
     {
         _configure.Host(builder.Configuration["RabbitMQ"]);
 
-        // Basket_ProductAddedToBasketQueue kuyruðuna gönderim yapýlandýrmasý
-        _configure.Send<ProductAddedToBasketRequestEvent>(x =>
-        {
-            // StateMachineQueue'ya göndermeli, çünkü event'i saga'nýn almasý gerekiyor
-            x.UseRoutingKeyFormatter(context => RabbitMQSettings.StateMachineQueue);
-        });
+        _configure.ReceiveEndpoint(RabbitMQSettings.Basket_BasketCompletedEventQueue, e =>
+        e.ConfigureConsumer<BasketCompletedEventConsumer>(context));
+        _configure.ReceiveEndpoint(RabbitMQSettings.Basket_BasketFailedEventQueue, e =>
+        e.ConfigureConsumer<BasketFailedEventConsumer>(context));
     });
 });
 
@@ -72,59 +77,50 @@ if (app.Environment.IsDevelopment())
 
 
 app.MapPost("/add-to-basket", async (AddToBasketVM model, IBasketRepository basketRepository,
-    IBasketItemRepository basketItemRepository, ISendEndpointProvider sendEndpointProvider) =>
+    IBasketItemRepository basketItemRepository, BasketDbContext context, ISendEndpointProvider sendEndpointProvider) =>
 {
-    // Sepeti kontrol et veya oluþtur
-    var basket = await basketRepository.GetByUserIdAsync(model.UserId);
-    if (basket == null)
+    // Sepet oluþtur
+    Baskett baskett = new()
     {
-        // Yeni sepet oluþtur
-        basket = new Baskett
-        {
-            UserId = model.UserId,
-        };
-        await basketRepository.AddAsync(basket);
-    }
-
-    // Sepete ürün ekle
-    var basketItem = new BasketItem
-    {
-        ProductId = model.ProductId,
-        Count = model.Count,
-        Price = model.Price,
-    };
-    await basketItemRepository.AddAsync(basketItem);
-
-    // ProductAddedToBasketRequestEvent oluþtur ve gönder
-    var correlationId = Guid.NewGuid();
-    var productAddedEvent = new ProductAddedToBasketRequestEvent(correlationId)
-    {
-        ProductId = model.ProductId,
-        Count = model.Count,
         UserId = model.UserId,
-        Price = model.Price
+        TotalPrice = model.BasketItems.Sum(bi => bi.Price * bi.Count),
+        BasketItems = model.BasketItems.Select(bi => new BasketItem
+        {
+            Price = bi.Price,
+            Count = bi.Count,
+            ProductId = bi.ProductId,
+        }).ToList(),
+    };
+
+    await context.Baskets.AddAsync(baskett);
+    await context.SaveChangesAsync();
+
+
+    var correlationId = Guid.NewGuid();
+
+    // ProductAddedToBasketRequestEvent oluþtur 
+    ProductAddedToBasketRequestEvent productAddedEvent = new(correlationId)
+    {
+        ProductId = model.ProductId,
+        Count = model.Count,
+        UserId = baskett.UserId,
+        Price = model.Price,
+        BasketItemMessages = baskett.BasketItems.Select(bi => new Shared.Messages.BasketItemMessage
+        {
+            Price = bi.Price,
+            Count = bi.Count,
+            ProductId = bi.ProductId,
+            Name = model.Name,
+
+        }).ToList(),
     };
 
     // Event'i Saga State Machine'e gönder
     var sendEndpoint = await sendEndpointProvider.GetSendEndpoint(
         new Uri($"queue:{RabbitMQSettings.StateMachineQueue}"));
-    await sendEndpoint.Send<ProductAddedToBasketRequestEvent>(productAddedEvent);
+    await sendEndpoint.Send(productAddedEvent);
 
-    return Results.Ok(new
-    {
-        BasketId = basket.ID,
-        BasketItemId = basketItem.ID,
-        Message = "Ürün sepete eklendi ve event gönderildi",
-        CorrelationId = correlationId
-    });
 });
 
-
-
-
-
-app.UseHttpsRedirection();
-app.UseAuthorization();
-app.MapControllers();
 
 app.Run();

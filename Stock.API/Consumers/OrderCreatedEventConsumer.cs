@@ -1,19 +1,16 @@
 ﻿using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Shared.Events.OrderCreatedEvent;
-using Shared.Events.StockEvents;
-using Shared.Settings;
 using Stock.API.Data;
+using Stock.API.Data.Entities;
 
 namespace Stock.API.Consumers
 {
-    public class OrderCreatedEventConsumer(StockDbContext stockDbContext, ISendEndpointProvider sendEndpointProvider) : IConsumer<OrderCreatedEvent>
+    public class OrderCreatedEventConsumer(StockDbContext stockDbContext) : IConsumer<OrderCreatedEvent>
     {
         public async Task Consume(ConsumeContext<OrderCreatedEvent> context)
         {
-            // Bu consumer sadece stok arttırma/azaltma işlemleri için kullanılacak
-            // Stok kontrol işlemi başka consumer'da yapılacak
-
+            // Bu consumer sipariş oluşturulduktan sonra (ödeme başarılı olduktan sonra) stok düşürme işlemini yapar
             try
             {
                 // Ürünlerin stok miktarını azalt
@@ -21,36 +18,37 @@ namespace Stock.API.Consumers
                 {
                     var stock = await stockDbContext.Stocks
                         .FirstOrDefaultAsync(s => s.ProductId == orderItem.ProductId);
-
+                    
                     if (stock != null)
                     {
-                        stock.Count -= orderItem.Count;
+                        // Stok miktarını, Stock entity'sinin SetCount metodu veya property'si ile azalt
+                        // Direkt değer ataması yapmak yerine EF Core track edilebilir değişiklik yap
+                        stockDbContext.Entry(stock).Property("Count").CurrentValue =
+                            (int)stockDbContext.Entry(stock).Property("Count").CurrentValue - orderItem.Count;
                     }
                 }
-
+                
                 await stockDbContext.SaveChangesAsync();
-
-                // Stok başarıyla azaltıldı, ilgili event'i gönder
-                var sendEndpoint = await sendEndpointProvider.GetSendEndpoint(new Uri($"queue:{RabbitMQSettings.StateMachineQueue}"));
-
-                StockReservedEvent stockReservedEvent = new(context.Message.CorrelationId)
+                
+                // İşlem başarılı olduğunda OrderCompletedEvent gönder
+                await context.Publish(new OrderCompletedEvent(context.Message.CorrelationId)
                 {
-                    OrderItems = context.Message.OrderItems,
-                };
-
-                await sendEndpoint.Send(stockReservedEvent);
+                    OrderId = context.Message.OrderId
+                });
+                
+                Console.WriteLine($"Sipariş {context.Message.OrderId} için stok miktarları başarıyla güncellendi.");
             }
             catch (Exception ex)
             {
-                // Stok azaltma sırasında bir hata oluştu
-                var sendEndpoint = await sendEndpointProvider.GetSendEndpoint(new Uri($"queue:{RabbitMQSettings.StateMachineQueue}"));
-
-                StockNotReservedEvent stockNotReservedEvent = new(context.Message.CorrelationId)
+                // Hata durumunda loglama yap
+                Console.WriteLine($"Sipariş {context.Message.OrderId} için stok güncelleme sırasında hata: {ex.Message}");
+                
+                // Hata olduğunda OrderFailEvent gönder
+                await context.Publish(new OrderFailEvent(context.Message.CorrelationId)
                 {
-                    Message = $"Stok azaltma işlemi sırasında hata: {ex.Message}"
-                };
-
-                await sendEndpoint.Send(stockNotReservedEvent);
+                    OrderId = context.Message.OrderId,
+                    Message = $"Stok güncelleme sırasında hata: {ex.Message}"
+                });
             }
         }
     }
