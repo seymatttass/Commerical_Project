@@ -17,6 +17,8 @@ namespace Shared.Events.OrderCreatedEvent
         }
         public Guid CorrelationId { get; }
         public int OrderId { get; set; }
-        public List<OrderItemMessage> OrderItems { get; set; }
+        public List<BasketItemMessage> OrderItems { get; set; }
+
+
     }
 }

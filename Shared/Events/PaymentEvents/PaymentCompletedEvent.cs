@@ -15,7 +15,7 @@ namespace Shared.Events.PaymentEvents
             CorrelationId = correlationId;
         }
         public Guid CorrelationId { get; }
-        public List<OrderItemMessage> OrderItems { get; set; }
+        public List<BasketItemMessage> BasketItemMessages { get; set; }
 
 
     }

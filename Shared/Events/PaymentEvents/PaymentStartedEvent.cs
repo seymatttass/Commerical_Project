@@ -16,6 +16,6 @@ namespace Shared.Events.PaymentEvents
             CorrelationId = correlationId;
         }
         public decimal TotalPrice { get; set; }
-        public List<OrderItemMessage> OrderItems { get; set; }
+        public List<BasketItemMessage> BasketItemMessages { get; set; }
     }
 }

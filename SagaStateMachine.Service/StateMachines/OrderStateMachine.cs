@@ -31,7 +31,7 @@ namespace SagaStateMachine.Service.StateMachines
         public Event<ProductAddedToBasketRequestEvent> ProductAddedToBasketRequestEvent { get; private set; }
         public Event<StockReservedEvent> StockReservedEvent { get; private set; }
         public Event<StockNotReservedEvent> StockNotReservedEvent { get; private set; }
-        public Event<BasketItemCompletedEvent> BasketItemCompletedEvent { get; private set; }
+        public Event<BasketCompletedEvent> BasketItemCompletedEvent { get; private set; }
         public Event<PaymentStartedEvent> PaymentStartedEvent { get; private set; }
         public Event<PaymentCompletedEvent> PaymentCompletedEvent { get; private set; }
         public Event<PaymentFailedEvent> PaymentFailedEvent { get; private set; }
@@ -46,46 +46,54 @@ namespace SagaStateMachine.Service.StateMachines
             // Hangi property'nin saga durumunu tutacağını bildiriyoruz.
             InstanceState(x => x.CurrentState);
 
-            // 1) Event'lerin Correlation ayarları:
-            //    Saga'yı başlatan ilk eventte .SelectId(...) ile yeni saga instance'ı yaratıyoruz.
-            //    Diğer event'lerde .CorrelateById(...) ile var olan saga'yı buluyoruz.
 
-            Event(() => ProductAddedToBasketRequestEvent,
-                x => x.CorrelateById(ctx => ctx.Message.CorrelationId)
-                      .SelectId(ctx => ctx.Message.CorrelationId));
+            Event(() => ProductAddedToBasketRequestEvent,  //orderstartedevenrt gelirse tetikleyici old. anlar.
+                orderStateInstance => orderStateInstance.CorrelateById<int>(database =>
+                database.OrderId, @event => @event.Message.BasketId) //eşit mi?
+                //varsa yeni bir corelationıd oluşturmayacağız.
+                //yoksa oluşturucaz.
+                .SelectId(e => Guid.NewGuid())); //yeni correlationıd.
 
             Event(() => StockReservedEvent,
-                x => x.CorrelateById(ctx => ctx.Message.CorrelationId));
+                orderStateInstance => orderStateInstance.CorrelateById(@event =>
+                @event.Message.CorrelationId));
 
             Event(() => StockNotReservedEvent,
-                x => x.CorrelateById(ctx => ctx.Message.CorrelationId));
-
-            Event(() => BasketItemCompletedEvent,
-                x => x.CorrelateById(ctx => ctx.Message.CorrelationId));
+                orderStateInstance => orderStateInstance.CorrelateById(@event =>
+                @event.Message.CorrelationId));
 
             Event(() => PaymentStartedEvent,
-                x => x.CorrelateById(ctx => ctx.Message.CorrelationId));
+                orderStateInstance => orderStateInstance.CorrelateById(@event =>
+                @event.Message.CorrelationId));
 
             Event(() => PaymentCompletedEvent,
-                x => x.CorrelateById(ctx => ctx.Message.CorrelationId));
+                orderStateInstance => orderStateInstance.CorrelateById(@event =>
+                @event.Message.CorrelationId));
 
             Event(() => PaymentFailedEvent,
-                x => x.CorrelateById(ctx => ctx.Message.CorrelationId));
+                orderStateInstance => orderStateInstance.CorrelateById(@event =>
+                @event.Message.CorrelationId));
 
             Event(() => OrderCreatedEvent,
-                x => x.CorrelateById(ctx => ctx.Message.CorrelationId));
+                orderStateInstance => orderStateInstance.CorrelateById(@event =>
+                @event.Message.CorrelationId));
 
             Event(() => OrderFailEvent,
-                x => x.CorrelateById(ctx => ctx.Message.CorrelationId));
+                orderStateInstance => orderStateInstance.CorrelateById(@event =>
+                @event.Message.CorrelationId));
 
             Event(() => OrderCompletedEvent,
-                x => x.CorrelateById(ctx => ctx.Message.CorrelationId));
+                orderStateInstance => orderStateInstance.CorrelateById(@event =>
+                @event.Message.CorrelationId));
 
             Event(() => GetAddressDetailResponseEvent,
-                x => x.CorrelateById(ctx => ctx.Message.CorrelationId));
+               orderStateInstance => orderStateInstance.CorrelateById(@event =>
+               @event.Message.CorrelationId));
 
             Event(() => GetUserDetailResponseEvent,
-                x => x.CorrelateById(ctx => ctx.Message.CorrelationId));
+                orderStateInstance => orderStateInstance.CorrelateById(@event =>
+                @event.Message.CorrelationId));
+
 
             // 2) Durum geçişleri (Initially, During blokları):
 
@@ -95,45 +103,56 @@ namespace SagaStateMachine.Service.StateMachines
                 When(ProductAddedToBasketRequestEvent)
                     .Then(context =>
                     {
-                        // Saga instance'ına bazı temel bilgileri kaydedebiliriz.
+                        // Saga instance'ına temel bilgileri kaydet
                         context.Instance.UserId = context.Data.UserId;
                         context.Instance.CreatedDate = DateTime.Now;
-                        // Toplam fiyat = adet * birim fiyat
                         context.Instance.TotalPrice = context.Data.Price * context.Data.Count;
                         context.Instance.ProductId = context.Data.ProductId;
                         context.Instance.Count = context.Data.Count;
                         context.Instance.Price = context.Data.Price;
                     })
-                    .TransitionTo(ProductAdded) // ProductAdded durumuna geç
-                                                // Stok kontrolü için Stock servisine bir mesaj gönderelim (opsiyonel).
-                    .Send(new Uri($"queue:{RabbitMQSettings.Stock_CheckStockQueue}"),
-                          context => new StockCheckedEvent(context.Data.CorrelationId)
-                          {
-                              ProductId = context.Data.ProductId,
-                              Count = context.Data.Count
-                          })
-            );
-
-            // **ProductAdded** durumunda stok sonucunu bekliyoruz:
-            // Stok rezerve edildiyse StockReservedEvent, edilemediyse StockNotReservedEvent
-            During(ProductAdded,
-                When(StockReservedEvent)
-                    .Then(context =>
-                    {
-                        context.Instance.IsStockReserved = true;
-                        // İsteğe bağlı olarak saga instance'ı üzerinde ek setlemeler yapılabilir
-                    })
-                    .TransitionTo(StockReserved)
-                    // Stok rezerve edildikten sonra Basket servisine sepeti güncellemesi için mesaj gönder
-                    .Send(new Uri($"queue:{RabbitMQSettings.Basket_BasketItemCompletedQueue}"),
-                          context => new BasketItemCompletedEvent(context.Data.CorrelationId)
+                    .TransitionTo(ProductAdded)
+                    // Stok kontrolü yapmıyoruz, direkt sepet tamamlama mesajı gönderiyoruz
+                    .Send(new Uri($"queue:{RabbitMQSettings.Basket_BasketCompletedEventQueue}"),
+                          context => new BasketCompletedEvent(context.Instance.CorrelationId)
                           {
                               ProductId = context.Instance.ProductId,
                               UserId = context.Instance.UserId,
                               Count = context.Instance.Count,
-                              TotalPrice = context.Instance.TotalPrice,
-                              // OrderItems bilgisini StockReservedEvent'ten alabilir veya kendi oluşturabilirsin
-                              OrderItems = context.Data.OrderItems
+                              TotalPrice = context.Instance.TotalPrice
+                          })
+            );
+
+            // ** ProductAdded ** durumunda sepet tamamlandı olayını bekliyoruz
+            During(ProductAdded,
+                When(BasketItemCompletedEvent)
+                    .Then(context =>
+                    {
+                        // Sepet tamamlandı, şimdi stok kontrolü yapabiliriz
+                    })
+                    .TransitionTo(BasketItemCompleted)
+                    // Sepet tamamlandıktan sonra stok kontrolü için Stock servisine mesaj gönderelim
+                    .Send(new Uri($"queue:{RabbitMQSettings.Stock_CheckStockQueue}"),
+                          context => new StockCheckedEvent(context.Instance.CorrelationId)
+                          {
+                              ProductId = context.Instance.ProductId,
+                              Count = context.Instance.Count
+                          })
+            );
+
+            // ** BasketItemCompleted ** durumunda stok sonucunu bekliyoruz
+            During(BasketItemCompleted,
+                When(StockReservedEvent)
+                    .Then(context =>
+                    {
+                        context.Instance.IsStockReserved = true;
+                    })
+                    .TransitionTo(StockReserved)
+                    // Stok rezerve edildikten sonra ödeme başlatma mesajı gönderilebilir
+                    .Send(new Uri($"queue:{RabbitMQSettings.Payment_PaymentStartedQueue}"),
+                          context => new PaymentStartedEvent(context.Instance.CorrelationId)
+                          {
+                              TotalPrice = context.Instance.TotalPrice
                           }),
 
                 When(StockNotReservedEvent)
@@ -142,51 +161,35 @@ namespace SagaStateMachine.Service.StateMachines
                         context.Instance.IsStockNotReserved = true;
                     })
                     .TransitionTo(StockNotReserved)
-                    // Sipariş başarısız bilgisini OrderFailEvent olarak Order servisine gönderebilirsin.
+                    // Sipariş başarısız bilgisini OrderFailEvent olarak Order servisine gönder
                     .Send(new Uri($"queue:{RabbitMQSettings.Order_OrderFailedQueue}"),
                           context => new OrderFailEvent(context.Data.CorrelationId)
                           {
-                              OrderId = context.Instance.OrderId, // Saga'da tutmuyorsanız ekleyin
-                              Message = context.Data.Message
+                              OrderId = context.Instance.OrderId,
+                              Message = "Stok yetersiz."
                           })
             );
 
-            // **StockReserved** durumuna geçtikten sonra sepet işlemi (Basket) tamamlandığında
-            // BasketItemCompletedEvent gelebilir.
+            // ** StockReserved ** durumunda ödeme başlatma olayını bekliyoruz
             During(StockReserved,
-                When(BasketItemCompletedEvent)
-                    .Then(context =>
-                    {
-                        // Örneğin "BasketItemCompleted" durumuna geçip,
-                        // ardından Payment servisine "PaymentStartedEvent" gönderebilirsiniz
-                    })
-                    .TransitionTo(BasketItemCompleted)
-                    .Send(new Uri($"queue:{RabbitMQSettings.Payment_PaymentStartedQueue}"),
-                          context => new PaymentStartedEvent(context.Data.CorrelationId)
-                          {
-                              TotalPrice = context.Instance.TotalPrice,
-                              OrderItems = context.Data.OrderItems
-                          })
-            );
-
-            // **StockNotReserved** durumunda isterseniz siparişi finalle de çekebilirsiniz
-            // ya da ek rollback vs. logic uygulayabilirsiniz. Burada basitçe Ignore ettik.
-            During(StockNotReserved,
-                Ignore(OrderFailEvent)
-            );
-
-            // **BasketItemCompleted** durumunda PaymentStartedEvent'i de direkt alabiliriz.
-            // (Eğer akış direkt PaymentStartedEvent ile geliyorsa.)
-            During(BasketItemCompleted,
                 When(PaymentStartedEvent)
                     .Then(context =>
                     {
-                        // Ödeme başlatıldıysa PaymentStarted durumuna geçebiliriz
+                        // Ödeme başlatıldıysa PaymentStarted durumuna geçiyoruz
                     })
                     .TransitionTo(PaymentStarted)
             );
 
-            // **PaymentStarted** durumunda ödeme sonucu PaymentCompletedEvent veya PaymentFailedEvent gelir
+            // ** StockNotReserved ** durumunda süreç tamamlanıyor
+            During(StockNotReserved,
+                Ignore(OrderFailEvent),
+                // İsterseniz burada başarısız sipariş durumuna geçebilirsiniz
+                When(OrderFailEvent)
+                    .TransitionTo(OrderFailed)
+                    .Finalize()
+            );
+
+            // ** PaymentStarted ** durumunda ödeme sonucunu bekliyoruz
             During(PaymentStarted,
                 When(PaymentCompletedEvent)
                     .Then(context =>
@@ -198,7 +201,6 @@ namespace SagaStateMachine.Service.StateMachines
                           context => new OrderCreatedEvent(context.Data.CorrelationId)
                           {
                               OrderId = context.Instance.OrderId,
-                              OrderItems = context.Data.OrderItems
                           }),
 
                 When(PaymentFailedEvent)
@@ -207,6 +209,19 @@ namespace SagaStateMachine.Service.StateMachines
                         context.Instance.IsPaymentFailed = true;
                     })
                     .TransitionTo(PaymentFailed)
+                    // Ödeme başarısız oldu, stok geri alınmalı
+                    .Send(new Uri($"queue:{RabbitMQSettings.Stock_RollbackMessageQueue}"),
+                          context => new StockRollBackMessage(context.Data.CorrelationId)
+                          {
+                              BasketItems = new List<BasketItemMessage>
+                              {
+                                  new BasketItemMessage
+                                  {
+                                      ProductId = context.Instance.ProductId,
+                                      Count = context.Instance.Count
+                                  }
+                              }
+                          })
                     // Siparişin başarısız olduğunu Order servisine bildir
                     .Send(new Uri($"queue:{RabbitMQSettings.Order_OrderFailedQueue}"),
                           context => new OrderFailEvent(context.Data.CorrelationId)
@@ -214,16 +229,9 @@ namespace SagaStateMachine.Service.StateMachines
                               OrderId = context.Instance.OrderId,
                               Message = context.Data.Message
                           })
-                    // Ayrıca rezerve edilen stokları geri almak için StockRollBackMessage yollayabilirsiniz
-                    .Send(new Uri($"queue:{RabbitMQSettings.Stock_RollbackMessageQueue}"),
-                          context => new StockRollBackMessage(context.Data.CorrelationId)
-                          {
-                              OrderItems = context.Data.OrderItems
-                          })
             );
 
-            // **PaymentCompleted** durumunda OrderCreatedEvent bekleniyor (sipariş tamamı oluşmuş demek)
-            // Bu event gelince OrderCreated durumuna geçip saga'yı finalize edebiliriz.
+            // ** PaymentCompleted ** durumunda sipariş oluşturuldu olayını bekliyoruz
             During(PaymentCompleted,
                 When(OrderCreatedEvent)
                     .Then(context =>
@@ -232,10 +240,9 @@ namespace SagaStateMachine.Service.StateMachines
                         context.Instance.OrderId = context.Data.OrderId;
                     })
                     .TransitionTo(OrderCreated)
-                    .Finalize()
             );
 
-            // **PaymentFailed** durumunda da eğer OrderFailEvent gelirse "OrderFailed" durumuna geçip finalize edebiliriz
+            // ** PaymentFailed ** durumunda sipariş başarısız olayını bekliyoruz
             During(PaymentFailed,
                 When(OrderFailEvent)
                     .Then(context =>
@@ -246,7 +253,7 @@ namespace SagaStateMachine.Service.StateMachines
                     .Finalize()
             );
 
-            // **OrderCreated** durumunda OrderCompletedEvent geldiğinde OrderCompleted durumuna geçiş
+            // ** OrderCreated ** durumunda sipariş tamamlandı olayını bekliyoruz
             During(OrderCreated,
                 When(OrderCompletedEvent)
                     .Then(context =>
@@ -255,7 +262,7 @@ namespace SagaStateMachine.Service.StateMachines
                         context.Instance.AddressId = context.Data.AddressId;
                     })
                     .TransitionTo(OrderCompleted)
-                    // Önce kullanıcı bilgilerini almak için User.API'ye mesaj gönder
+                    // Kullanıcı bilgilerini almak için mesaj gönder
                     .Send(new Uri($"queue:{RabbitMQSettings.GetUserDetailRequestEvent}"),
                           context => new GetUserDetailRequestEvent(context.Data.CorrelationId)
                           {
@@ -263,12 +270,12 @@ namespace SagaStateMachine.Service.StateMachines
                           })
             );
 
-            // **OrderCompleted** durumunda GetUserDetailResponseEvent'i ele alma
+            // ** OrderCompleted ** durumunda kullanıcı bilgilerini bekliyoruz
             During(OrderCompleted,
                 When(GetUserDetailResponseEvent)
                     .Then(context =>
                     {
-                        // Userss entity'sine göre kullanıcı bilgilerini Saga instance'ına kaydet
+                        // Kullanıcı bilgilerini Saga instance'ına kaydet
                         context.Instance.Username = context.Data.Username;
                         context.Instance.Name = context.Data.Name;
                         context.Instance.Surname = context.Data.Surname;
@@ -277,7 +284,7 @@ namespace SagaStateMachine.Service.StateMachines
                         context.Instance.Birthdate = context.Data.Birthdate;
                     })
                     .TransitionTo(UserReceived)
-                    // Kullanıcı bilgileri alındıktan sonra adres bilgilerini al
+                    // Adres bilgilerini almak için mesaj gönder
                     .Send(new Uri($"queue:{RabbitMQSettings.GetAddressDetailRequestEvent}"),
                           context => new GetAddressDetailRequestEvent(context.Data.CorrelationId)
                           {
@@ -285,7 +292,7 @@ namespace SagaStateMachine.Service.StateMachines
                           })
             );
 
-            // **UserReceived** durumunda GetAddressDetailResponseEvent'i ele alma
+            // ** UserReceived ** durumunda adres bilgilerini bekliyoruz
             During(UserReceived,
                 When(GetAddressDetailResponseEvent)
                     .Then(context =>
@@ -297,9 +304,6 @@ namespace SagaStateMachine.Service.StateMachines
                         context.Instance.District = context.Data.District;
                         context.Instance.AddressText = context.Data.AddressText;
                         context.Instance.PostalCode = context.Data.PostalCode;
-
-                        // Burada kullanıcı ve adres bilgileri alındıktan sonra diğer işlemler yapılabilir
-                        // Örneğin: Fatura oluşturma, bildirim gönderme vb.
                     })
                     .Finalize()
             );

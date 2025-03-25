@@ -9,19 +9,21 @@ using System.Threading.Tasks;
 namespace Shared.Events.BasketEvents
 {
     //Basket.API ürünü sepete ekler ve BasketItemAddedEvent ile işlemin tamamlandığını bildirir 
-    public class BasketItemCompletedEvent : CorrelatedBy<Guid>
+    public class BasketCompletedEvent : CorrelatedBy<Guid>
     {
-        public BasketItemCompletedEvent(Guid correlationId)
+        public BasketCompletedEvent(Guid correlationId)
         {
             CorrelationId = correlationId;
         }
-        public Guid CorrelationId { get; }
+
+        public Guid CorrelationId { get; set; }
+        public int BasketId { get; set; }
         public int ProductId { get; set; }
         public int UserId { get; set; }
         public int Count { get; set; }
         public decimal TotalPrice { get; set; }
-        public string Name { get; set; }
-        public List<OrderItemMessage> OrderItems { get; set; }
+
+
 
     }
 }

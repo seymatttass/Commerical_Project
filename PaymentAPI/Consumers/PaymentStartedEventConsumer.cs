@@ -25,7 +25,6 @@ namespace Payment.API.Consumers
                 PaymentFailedEvent paymentFailedEvent = new(context.Message.CorrelationId)
                 {
                     Message = "Yetersiz bakiye...",
-                     OrderItems = context.Message.OrderItems,
                 };
 
                 await sendEndpoint.Send(paymentFailedEvent);
