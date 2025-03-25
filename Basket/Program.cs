@@ -34,18 +34,10 @@ builder.Services.AddStackExchangeRedisCache(options =>
 builder.Services.AddMassTransit(configurator =>
 {
 
-    configurator.AddConsumer<BasketCompletedEventConsumer>();
-    configurator.AddConsumer<BasketFailedEventConsumer>();
-
-
     configurator.UsingRabbitMq((context, _configure) =>
     {
         _configure.Host(builder.Configuration["RabbitMQ"]);
 
-        _configure.ReceiveEndpoint(RabbitMQSettings.Basket_BasketCompletedEventQueue, e =>
-        e.ConfigureConsumer<BasketCompletedEventConsumer>(context));
-        _configure.ReceiveEndpoint(RabbitMQSettings.Basket_BasketFailedEventQueue, e =>
-        e.ConfigureConsumer<BasketFailedEventConsumer>(context));
     });
 });
 
@@ -96,10 +88,9 @@ app.MapPost("/add-to-basket", async (AddToBasketVM model, IBasketRepository bask
     await context.SaveChangesAsync();
 
 
-    var correlationId = Guid.NewGuid();
 
     // ProductAddedToBasketRequestEvent oluþtur 
-    ProductAddedToBasketRequestEvent productAddedEvent = new(correlationId)
+    ProductAddedToBasketRequestEvent productAddedEvent = new()
     {
         ProductId = model.ProductId,
         Count = model.Count,
@@ -110,17 +101,27 @@ app.MapPost("/add-to-basket", async (AddToBasketVM model, IBasketRepository bask
             Price = bi.Price,
             Count = bi.Count,
             ProductId = bi.ProductId,
-            Name = model.Name,
-
         }).ToList(),
     };
 
     // Event'i Saga State Machine'e gönder
     var sendEndpoint = await sendEndpointProvider.GetSendEndpoint(
         new Uri($"queue:{RabbitMQSettings.StateMachineQueue}"));
-    await sendEndpoint.Send(productAddedEvent);
-
+    await sendEndpoint.Send<ProductAddedToBasketRequestEvent>(productAddedEvent);
 });
 
+
+// Diðer middleware tanýmlamalarý...
+app.UseHttpsRedirection();
+app.UseRouting(); // Eðer yoksa ekleyin
+app.UseAuthorization();
+
+app.UseEndpoints(endpoints =>
+{
+    endpoints.MapControllers();
+});
+
+// veya daha basit þekilde:
+app.MapControllers();
 
 app.Run();

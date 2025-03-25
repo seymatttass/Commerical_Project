@@ -14,7 +14,7 @@ namespace Shared.Message
             {
                 CorrelationId = correlationId;
             }
-            public List<BasketItemMessage> BasketItems { get; set; }
+            public List<BasketItemMessage> BasketItemMessages { get; set; }
 
             public Guid CorrelationId { get; }
         }

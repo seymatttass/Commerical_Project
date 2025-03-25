@@ -40,7 +40,7 @@ namespace Basket.API.Services.BasketService
                 {
                     foreach (var item in basket.BasketItems)
                     {
-                        var productAddedEvent = new ProductAddedToBasketRequestEvent(Guid.NewGuid())
+                        var productAddedEvent = new ProductAddedToBasketRequestEvent()
                         {
                             ProductId = item.ProductId,
                             Count = item.Count,

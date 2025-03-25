@@ -14,8 +14,8 @@ namespace Shared.Settings
 
         // **Stock Servisi Kuyrukları**
         public const string Stock_CheckStockQueue = "stock-check-stock-queue"; // Stok kontrol kuyruğu
-        public const string Stock_StockReservedQueue = "stock-stock-reserved-queue"; // Stok rezerve edildi
-        public const string Stock_StockNotReservedQueue = "stock-stock-not-reserved-queue"; // Stok rezerve edilemedi
+        //public const string Stock_StockReservedQueue = "stock-stock-reserved-queue"; // Stok rezerve edildi
+        /// public const string Stock_StockNotReservedQueue = "stock-stock-not-reserved-queue"; // Stok rezerve edilemedi
         public const string Stock_RollbackMessageQueue = "stock-rollback-message-queue";
 
 
@@ -26,13 +26,27 @@ namespace Shared.Settings
 
         // **Payment Servisi Kuyrukları**
         public const string Payment_PaymentStartedQueue = "payment-payment-started-queue"; // Ödeme başlatıldı kuyruğu
-        public const string Payment_PaymentCompletedQueue = "payment-payment-completed-queue"; // Ödeme tamamlandı kuyruğu
-        public const string Payment_PaymentFailedQueue = "payment-payment-failed-queue"; // Ödeme başarısız kuyruğu
+        //public const string Payment_PaymentCompletedQueue = "payment-payment-completed-queue"; // Ödeme tamamlandı kuyruğu
+        //public const string Payment_PaymentFailedQueue = "payment-payment-failed-queue"; // Ödeme başarısız kuyruğu
 
         // **Basket (Sepet) Servisi Kuyrukları**
         public const string Basket_ProductAddedToBasketQueue = "basket-add-to-basket-queue"; // Kullanıcı sepete ekleme kuyruğu
-        public const string Basket_BasketCompletedEventQueue = "basket-basket-completed-item-added-queue"; // Ürün sepete eklendi kuyruğu
         public const string Basket_BasketFailedEventQueue = "basket-basket-failed-item-added-queue"; // Ürün sepete eklendi kuyruğu
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         public const string GetAddressDetailRequestEvent = "address-get-address-request-queue";
         public const string GetAddressDetailResponseEvent = "address-get-address-response-queue";

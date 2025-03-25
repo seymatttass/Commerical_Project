@@ -204,7 +204,7 @@ app.MapPost("/add-to-basket", async (ProductDbContext context, MassTransit.ISend
     // **2️⃣ - Event objesini oluşturalım**
     var correlationId = Guid.NewGuid(); // Saga takibi için benzersiz ID
 
-    ProductAddedToBasketRequestEvent productAddedEvent = new(correlationId)
+    ProductAddedToBasketRequestEvent productAddedEvent = new()
     {
         ProductId = firstProduct.Id,
         Count = 1, // Örnek olarak 1 tane ekliyoruz, isteğe göre değiştirilebilir

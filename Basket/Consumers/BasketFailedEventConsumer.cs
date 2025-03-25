@@ -15,7 +15,6 @@ namespace Basket.API.Consumers
             {
                 await basketDbContext.SaveChangesAsync();
             }
-
         }
     }
 }

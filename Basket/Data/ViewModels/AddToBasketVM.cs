@@ -9,7 +9,6 @@ namespace Basket.API.Data.ViewModels
         public int Count { get; set; }
         public decimal Price { get; set; }
         public decimal TotalPrice { get; set; }
-        public string Name { get; set; }
 
 
         public List<BasketItemVM> BasketItems { get; set; }

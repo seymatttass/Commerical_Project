@@ -13,10 +13,6 @@ namespace Basket.API.DTOS.BasketDTO.Basket
         [Required]
         public int StockId { get; set; }  
 
-        [Required]
-        [Range(0, double.MaxValue, ErrorMessage = "Total price must be a positive value.")]
-        public decimal TotalPrice { get; set; } 
-
         public List<BasketItem> BasketItems { get; set; } = new List<BasketItem>();
     }
 }
