@@ -20,8 +20,6 @@ namespace Basket.API.Controllers
         private readonly IBasketItemService _basketItemService;
         private readonly IPublishEndpoint _publishEndpoint;
 
-    
-
         public BasketController(IBasketService basketService, IBasketItemService basketItemService, IPublishEndpoint publishEndpoint)
         {
             _basketService = basketService;

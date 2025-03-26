@@ -43,12 +43,9 @@ namespace SagaStateMachine.Service.StateMachines
         {
             // Hangi property'nin saga durumunu tutacağını bildiriyoruz.
             InstanceState(x => x.CurrentState);
-            Event(() => ProductAddedToBasketRequestEvent,  //orderstartedevent gelirse tetikleyici old. anlar.
-                orderStateInstance => orderStateInstance.CorrelateById<int>(database =>
-                database.OrderId, @event => @event.Message.BasketId) //eşit mi?
-                //varsa yeni bir corelationıd oluşturmayacağız.
-                //yoksa oluşturucaz.
-                .SelectId(e => Guid.NewGuid())); //yeni correlationıd.
+            Event(() => ProductAddedToBasketRequestEvent,
+                orderStateInstance => orderStateInstance.CorrelateById(@event => @event.Message.CorrelationId)
+                .SelectId(e => Guid.NewGuid()));
 
             Event(() => StockReservedEvent,
                 orderStateInstance => orderStateInstance.CorrelateById(@event =>
@@ -82,18 +79,7 @@ namespace SagaStateMachine.Service.StateMachines
                 orderStateInstance => orderStateInstance.CorrelateById(@event =>
                 @event.Message.CorrelationId));
 
-            //Event(() => GetAddressDetailResponseEvent,
-            //   orderStateInstance => orderStateInstance.CorrelateById(@event =>
-            //   @event.Message.CorrelationId));
 
-            //Event(() => GetUserDetailResponseEvent,
-            //    orderStateInstance => orderStateInstance.CorrelateById(@event =>
-            //    @event.Message.CorrelationId));
-
-
-            // 2) Durum geçişleri (Initially, During blokları):
-
-            // **Initially**:
             // İlk gelen event: ProductAddedToBasketRequestEvent
             Initially(
                 When(ProductAddedToBasketRequestEvent)
@@ -101,7 +87,7 @@ namespace SagaStateMachine.Service.StateMachines
                     {
                         // Saga instance'ına temel bilgileri kaydet
                         context.Instance.UserId = context.Data.UserId;
-                        context.Instance.CreatedDate = DateTime.Now;
+                        context.Instance.CreatedDate = DateTime.UtcNow;
                         context.Instance.TotalPrice = context.Data.Price * context.Data.Count;
                         context.Instance.ProductId = context.Data.ProductId;
                         context.Instance.Count = context.Data.Count;
