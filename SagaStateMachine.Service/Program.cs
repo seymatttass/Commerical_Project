@@ -10,12 +10,18 @@ using Shared.Settings;
 
 var builder = Host.CreateApplicationBuilder(args);
 builder.Services.AddHostedService<Worker>();
+
+
 builder.Services.AddMassTransit(configurator =>
 {
     // Saga State Machine ve Repository konfigürasyonu
     configurator.AddSagaStateMachine<OrderStateMachine, OrderStateInstance>()
         .EntityFrameworkRepository(options =>
         {
+            // PostgreSQL ile çalýþýrken lock hints'leri devre dýþý býrak
+            options.ConcurrencyMode = ConcurrencyMode.Optimistic; // Optimistic concurrency kullan
+            options.LockStatementProvider = null; // SQL Server'a özgü kilitler kullanýlmasýn
+
             options.AddDbContext<DbContext, OrderStateDbContext>((provider, _builder) =>
             {
                 _builder.UseNpgsql(builder.Configuration.GetConnectionString("PostgreSQL"));
@@ -24,7 +30,6 @@ builder.Services.AddMassTransit(configurator =>
 
     configurator.UsingRabbitMq((context, _configure) =>
     {
-        
         _configure.Host(builder.Configuration["RabbitMQ"]);
 
         _configure.ReceiveEndpoint(RabbitMQSettings.StateMachineQueue, e =>
@@ -32,7 +37,7 @@ builder.Services.AddMassTransit(configurator =>
             e.ConfigureSaga<OrderStateInstance>(context);
         });
     });
-});
+}); ;
 
 
 var host = builder.Build();

@@ -33,6 +33,7 @@ builder.Services.AddStackExchangeRedisCache(options =>
 
 builder.Services.AddMassTransit(configurator =>
 {
+    configurator.AddRequestClient<ProductAddedToBasketRequestEvent>();
 
     configurator.UsingRabbitMq((context, _configure) =>
     {
@@ -96,6 +97,7 @@ app.MapPost("/add-to-basket", async (AddToBasketVM model, IBasketRepository bask
         Count = model.Count,
         UserId = baskett.UserId,
         Price = model.Price,
+        BasketId = baskett.ID, 
         BasketItemMessages = baskett.BasketItems.Select(bi => new Shared.Messages.BasketItemMessage
         {
             Price = bi.Price,
@@ -113,7 +115,7 @@ app.MapPost("/add-to-basket", async (AddToBasketVM model, IBasketRepository bask
 
 // Diðer middleware tanýmlamalarý...
 app.UseHttpsRedirection();
-app.UseRouting(); // Eðer yoksa ekleyin
+app.UseRouting(); 
 app.UseAuthorization();
 
 app.UseEndpoints(endpoints =>
@@ -121,7 +123,6 @@ app.UseEndpoints(endpoints =>
     endpoints.MapControllers();
 });
 
-// veya daha basit þekilde:
 app.MapControllers();
 
 app.Run();

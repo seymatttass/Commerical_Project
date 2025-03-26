@@ -83,7 +83,6 @@ using (var scope = app.Services.CreateScope())  // BuildServiceProvider() kullan
     }
 }
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();

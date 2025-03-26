@@ -9,6 +9,8 @@ using Payment.API.DTOS.Validators;
 using MassTransit;
 using Payment.API.Consumers;
 using Shared.Settings;
+using Shared.Events.BasketEvents;
+using Shared.Events.StockEvents;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -39,7 +41,7 @@ builder.Services.AddMassTransit(configurator =>
         _configure.Host(builder.Configuration["RabbitMQ"]);
 
         _configure.ReceiveEndpoint(RabbitMQSettings.Payment_PaymentStartedQueue, e =>
-        e.ConfigureConsumer<PaymentStartedEventConsumer>(context));
+         e.ConfigureConsumer<PaymentStartedEventConsumer>(context));
 
 
     });
