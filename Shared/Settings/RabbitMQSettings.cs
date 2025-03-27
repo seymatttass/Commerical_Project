@@ -17,6 +17,7 @@ namespace Shared.Settings
         //public const string Stock_StockReservedQueue = "stock-stock-reserved-queue"; // Stok rezerve edildi
         /// public const string Stock_StockNotReservedQueue = "stock-stock-not-reserved-queue"; // Stok rezerve edilemedi
         public const string Stock_RollbackMessageQueue = "stock-rollback-message-queue";
+        public const string Stock_ReductionQueue = "stock-reduction-queue";  //stok azaltma.
 
 
         // **Order Servisi Kuyrukları**
