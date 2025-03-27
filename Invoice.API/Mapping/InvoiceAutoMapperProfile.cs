@@ -15,7 +15,5 @@ namespace Invoice.API.Mapping
             CreateMap<UpdateInvoiceDTO, Data.Entities.Invoice>()
                 .ReverseMap();
         }
-
-
     }
 }

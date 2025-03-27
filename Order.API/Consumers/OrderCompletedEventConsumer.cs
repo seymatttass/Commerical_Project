@@ -15,8 +15,6 @@ namespace Order.API.Consumers
                 order.OrderStatus = Data.Enums.OrdeStatus.Completed;
                 await orderDbContext.SaveChangesAsync();
             }
-
-
         }
     }
 }
