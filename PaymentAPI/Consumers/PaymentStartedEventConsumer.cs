@@ -20,7 +20,7 @@ namespace Payment.API.Consumers
 
                 await sendEndpoint.Send(paymentCompletedEvent);
             }
-            else
+            else 
             {
                 PaymentFailedEvent paymentFailedEvent = new(context.Message.CorrelationId)
                 {

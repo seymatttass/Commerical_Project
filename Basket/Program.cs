@@ -17,6 +17,7 @@ using Basket.API.Data.Entities;
 using System.Linq;
 using Basket.API.Consumers;
 
+// Web uygulamasý oluþturma
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
@@ -27,10 +28,10 @@ builder.Services.AddDbContext<BasketDbContext>(options =>
 builder.Services.AddStackExchangeRedisCache(options =>
 {
     options.Configuration = builder.Configuration.GetConnectionString("Redis");
-    options.InstanceName = "BasketCache:";
+    options.InstanceName = "BasketCache:"; 
 });
 
-
+// MassTransit (mesaj kuyruk sistemi) 
 builder.Services.AddMassTransit(configurator =>
 {
     configurator.AddRequestClient<ProductAddedToBasketRequestEvent>();
@@ -38,13 +39,12 @@ builder.Services.AddMassTransit(configurator =>
     configurator.UsingRabbitMq((context, _configure) =>
     {
         _configure.Host(builder.Configuration["RabbitMQ"]);
-
     });
 });
 
+//Dependency Injection kaydý
 builder.Services.AddScoped<IBasketRepository, BasketRepository>();
 builder.Services.AddScoped<IBasketService, BasketService>();
-
 builder.Services.AddScoped<IBasketItemRepository, BasketItemRepository>();
 builder.Services.AddScoped<IBasketItemService, BasketItemService>();
 
@@ -52,7 +52,6 @@ builder.Services.AddAutoMapper(typeof(BasketAutoMapperProfile));
 
 builder.Services.AddValidatorsFromAssemblyContaining<CreateBasketValidators>();
 builder.Services.AddValidatorsFromAssemblyContaining<UpdateBasketValidators>();
-
 builder.Services.AddValidatorsFromAssemblyContaining<CreateBasketItemValidators>();
 builder.Services.AddValidatorsFromAssemblyContaining<UpdateBasketItemValidators>();
 
@@ -67,16 +66,20 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-
-
-app.MapPost("/add-to-basket", async (AddToBasketVM model, IBasketRepository basketRepository,
-    IBasketItemRepository basketItemRepository, BasketDbContext context, ISendEndpointProvider sendEndpointProvider) =>
+// Minimal API endpoint: Sepete ürün ekleme
+app.MapPost("/add-to-basket", async (
+    AddToBasketVM model,                      // Ýstek modelimiz
+    IBasketRepository basketRepository,      
+    IBasketItemRepository basketItemRepository, 
+    BasketDbContext context,                  
+    ISendEndpointProvider sendEndpointProvider) => 
 {
-    // Sepet oluþtur
+
     Baskett baskett = new()
     {
         UserId = model.UserId,
         TotalPrice = model.BasketItems.Sum(bi => bi.Price * bi.Count),
+        // Sepet öðelerini model üzerinden dönüþtürme
         BasketItems = model.BasketItems.Select(bi => new BasketItem
         {
             Price = bi.Price,
@@ -88,16 +91,14 @@ app.MapPost("/add-to-basket", async (AddToBasketVM model, IBasketRepository bask
     await context.Baskets.AddAsync(baskett);
     await context.SaveChangesAsync();
 
-
-
-    // ProductAddedToBasketRequestEvent oluþtur 
+    // Saga State Machine'e gönderilecek event oluþturma
     ProductAddedToBasketRequestEvent productAddedEvent = new()
     {
         ProductId = model.ProductId,
         Count = model.Count,
         UserId = baskett.UserId,
         Price = model.Price,
-        BasketId = baskett.ID, 
+        // Sepetteki tüm ürünleri mesajlara dönüþtürme
         BasketItemMessages = baskett.BasketItems.Select(bi => new Shared.Messages.BasketItemMessage
         {
             Price = bi.Price,
@@ -106,16 +107,16 @@ app.MapPost("/add-to-basket", async (AddToBasketVM model, IBasketRepository bask
         }).ToList(),
     };
 
-    // Event'i Saga State Machine'e gönder
+    // RabbitMQ kuyruðuna mesaj gönderme için endpoint oluþturma
     var sendEndpoint = await sendEndpointProvider.GetSendEndpoint(
         new Uri($"queue:{RabbitMQSettings.StateMachineQueue}"));
+
+    // Event'i kuyruða gönderme
     await sendEndpoint.Send<ProductAddedToBasketRequestEvent>(productAddedEvent);
 });
 
-
-// Diðer middleware tanýmlamalarý...
 app.UseHttpsRedirection();
-app.UseRouting(); 
+app.UseRouting();
 app.UseAuthorization();
 
 app.UseEndpoints(endpoints =>
@@ -124,5 +125,4 @@ app.UseEndpoints(endpoints =>
 });
 
 app.MapControllers();
-
 app.Run();

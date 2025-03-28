@@ -10,29 +10,21 @@ using Stock.API.services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 builder.Services.AddControllers();
 
-// DbContext configuration
 builder.Services.AddDbContext<StockDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// AutoMapper configuration
 builder.Services.AddAutoMapper(typeof(Program));
 
-// Repository and Service registrations
 builder.Services.AddScoped<IStockRepository, StockRepository>();
 builder.Services.AddScoped<IStockService, StockService>();
 
-// Validator'ları kaydet
 builder.Services.AddValidatorsFromAssemblyContaining<CreateStockDtoValidator>();
 builder.Services.AddValidatorsFromAssemblyContaining<UpdateStockDtoValidator>();
 
-// Swagger configuration
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-
-
 
 
 builder.Services.AddMassTransit(configurator =>
@@ -56,14 +48,13 @@ builder.Services.AddMassTransit(configurator =>
 var app = builder.Build();
 
 // Dependency Injection (DI) ile Migration işlemi ve Dummy Data ekleme
-using (var scope = app.Services.CreateScope())  // BuildServiceProvider() kullanılmadı
+using (var scope = app.Services.CreateScope())  
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<StockDbContext>();
 
     // **Migration işlemini uygula** (Tablo yoksa oluşturur, varsa bir şey yapmaz)
     dbContext.Database.Migrate();
 
-    // Eğer stok tablosunda hiç veri yoksa dummy data ekleyelim
     if (!dbContext.Stocks.Any())
     {
         dbContext.Stocks.AddRange(
