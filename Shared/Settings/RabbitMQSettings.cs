@@ -23,7 +23,8 @@ namespace Shared.Settings
         // **Order Servisi Kuyrukları**
         public const string Order_OrderCreatedQueue = "order-order-created-queue"; // Sipariş oluşturma kuyruğu
         public const string Order_OrderFailedQueue = "order-order-failed-queue"; // Sipariş başarısız kuyruğu
-        public const string Order_OrderCompletedQueue = "order-order-completed-queue"; 
+        public const string Order_OrderCompletedQueue = "order-order-completed-queue";
+
 
         // **Payment Servisi Kuyrukları**
         public const string Payment_PaymentStartedQueue = "payment-payment-started-queue"; // Ödeme başlatıldı kuyruğu

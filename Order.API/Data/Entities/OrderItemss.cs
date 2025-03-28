@@ -8,6 +8,7 @@ namespace Order.API.Data.Entities
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int ID { get; set; }
+        public int OrderId { get; set; }
         public int ProductId { get; set; }
         public int ShippingId { get; set; }
         public int Count { get; set; }

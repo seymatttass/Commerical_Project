@@ -19,7 +19,6 @@ namespace Shared.Events.BasketEvents
         }
 
         public int ProductId { get; set; }
-        public int BasketId { get; set; }
         public int Count { get; set; }
         public int UserId { get; set; }
         public string Name { get; set; }
