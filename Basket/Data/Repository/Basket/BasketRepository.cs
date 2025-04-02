@@ -8,36 +8,49 @@ namespace Basket.API.Data.Repository.Basket
 {
     public class BasketRepository : IBasketRepository
     {
-        private readonly IDistributedCache _redisCache;
-        private readonly string _basketPrefix = "basket:";
+        private readonly IDistributedCache _redisCache; // Redis önbellek bağlantısı
+        private readonly string _basketPrefix = "basket:"; // Sepet anahtarları için önek
 
         public BasketRepository(IDistributedCache redisCache)
         {
             _redisCache = redisCache;
         }
 
+        /// <summary>
+        /// Sepet ID'sine göre Redis anahtarını oluşturur
+        /// </summary>
+        /// <param name="id">Sepet ID'si</param>
+        /// <returns>Redis'te kullanılacak tam anahtar adı</returns>
         private string GetBasketKey(int id)
         {
             return $"{_basketPrefix}{id}";
         }
 
+        /// <summary>
+        /// Kullanıcı ID'sine göre sepet indeks anahtarını oluşturur
+        /// </summary>
+        /// <param name="userId">Kullanıcı ID'si</param>
+        /// <returns>Kullanıcı-sepet eşleşmesi için kullanılan Redis anahtarı</returns>
         private string GetUserBasketKey(int userId)
         {
             return $"user:{userId}:basket";
         }
 
+        /// <summary>
+        /// Yeni bir sepet ekler
+        /// </summary>
+        /// <param name="entity">Eklenecek sepet nesnesi</param>
         public async Task AddAsync(Baskett entity)
         {
-            // Generate ID if not already set
+            // Eğer ID atanmamışsa yeni bir ID ata
             if (entity.ID <= 0)
             {
                 entity.ID = await GetNextIdAsync();
             }
 
-            // Save the basket
             await SaveBasketToRedisAsync(entity);
 
-            // Create index for user-basket lookup
+            // Kullanıcı-sepet ilişkisi için indeks oluştur
             await _redisCache.SetStringAsync(
                 GetUserBasketKey(entity.UserId),
                 entity.ID.ToString(),
@@ -45,37 +58,42 @@ namespace Basket.API.Data.Repository.Basket
             );
         }
 
-        public async Task AddRangeAsync(IEnumerable<Baskett> entities)
-        {
-            foreach (var entity in entities)
-            {
-                await AddAsync(entity);
-            }
-        }
 
+        /// <summary>
+        /// Belirli bir ID'ye sahip sepetin var olup olmadığını kontrol eder
+        /// </summary>
+        /// <param name="id">Kontrol edilecek sepet ID'si</param>
+        /// <returns>Sepet varsa true, yoksa false</returns>
         public async Task<bool> ExistsAsync(int id)
         {
             var basketJson = await _redisCache.GetStringAsync(GetBasketKey(id));
             return !string.IsNullOrEmpty(basketJson);
         }
 
-        public async Task<IEnumerable<Baskett>> FindAsync(System.Linq.Expressions.Expression<Func<Baskett, bool>> predicate)
+        /// <summary>
+        /// Verilen koşullara uyan sepetleri bulur
+        /// </summary>
+        /// <param name="predicate">Sorgulama için filtre koşulu</param>
+        /// <returns>Koşullara uyan sepetlerin koleksiyonu</returns>
+        public async Task<IEnumerable<Baskett>> FindAsync(Expression<Func<Baskett, bool>> predicate)
         {
-            // This is inefficient with Redis, but required for compatibility
-            // In a real implementation, you'd want to redesign this based on your query patterns
+            // Redis ile verimli olmayan ama uyumluluk için gerekli olan bir yöntem
+            // Gerçek uygulamada, sorgu modellerinize göre yeniden tasarlamanız önerilir
             var allBaskets = await GetAllAsync();
             return allBaskets.AsQueryable().Where(predicate).ToList();
         }
 
+        /// <summary>
+        /// Tüm sepetleri getirir
+        /// </summary>
+        /// <returns>Tüm sepetlerin koleksiyonu</returns>
         public async Task<IEnumerable<Baskett>> GetAllAsync()
         {
-            // Warning: This implementation is for compatibility but not efficient in Redis
-            // It requires scanning all keys with the basket prefix
             var result = new List<Baskett>();
 
-            // This is a simplified example - in production you would use Redis SCAN
-            // For now, we'll assume you have a way to get all basket IDs
-            // This could be implemented by maintaining a separate set in Redis
+            // Bu basitleştirilmiş bir örnek - üretimde Redis SCAN kullanmalısınız
+            // Şimdilik tüm sepet ID'lerini alabileceğimiz bir yöntem olduğunu varsayıyoruz
+            // Bu, Redis'te ayrı bir küme tutarak uygulanabilir
             var basketIds = await GetAllBasketIdsAsync();
 
             foreach (var id in basketIds)
@@ -90,6 +108,11 @@ namespace Basket.API.Data.Repository.Basket
             return result;
         }
 
+        /// <summary>
+        /// ID'ye göre sepeti getirir
+        /// </summary>
+        /// <param name="id">Sepet ID'si</param>
+        /// <returns>Bulunan sepet nesnesi veya null</returns>
         public async Task<Baskett> GetByIdAsync(int id)
         {
             var basketJson = await _redisCache.GetStringAsync(GetBasketKey(id));
@@ -102,6 +125,11 @@ namespace Basket.API.Data.Repository.Basket
             return JsonSerializer.Deserialize<Baskett>(basketJson);
         }
 
+        /// <summary>
+        /// Kullanıcı ID'sine göre sepeti getirir
+        /// </summary>
+        /// <param name="userId">Kullanıcı ID'si</param>
+        /// <returns>Kullanıcının sepeti veya null</returns>
         public async Task<Baskett> GetByUserIdAsync(int userId)
         {
             var basketIdStr = await _redisCache.GetStringAsync(GetUserBasketKey(userId));
@@ -114,6 +142,11 @@ namespace Basket.API.Data.Repository.Basket
             return await GetByIdAsync(basketId);
         }
 
+        /// <summary>
+        /// Sepeti ID'ye göre siler
+        /// </summary>
+        /// <param name="id">Silinecek sepet ID'si</param>
+        /// <returns>Silme başarılı ise true, yoksa false</returns>
         public async Task<bool> RemoveAsync(int id)
         {
             var basket = await GetByIdAsync(id);
@@ -122,24 +155,28 @@ namespace Basket.API.Data.Repository.Basket
                 return false;
             }
 
-            // Remove the user-basket index
+            // Kullanıcı-sepet indeksini kaldır
             await _redisCache.RemoveAsync(GetUserBasketKey(basket.UserId));
 
-            // Remove each basket item
+            // Her sepet öğesini kaldır
             foreach (var item in basket.BasketItems)
             {
                 await _redisCache.RemoveAsync($"basketitem:{item.ID}");
             }
 
-            // Remove the basket
+            // Sepeti kaldır
             await _redisCache.RemoveAsync(GetBasketKey(id));
 
-            // Update basket ID list
+            // Sepet ID listesini güncelle
             await RemoveBasketIdAsync(id);
 
             return true;
         }
 
+        /// <summary>
+        /// Birden fazla sepeti toplu olarak siler
+        /// </summary>
+        /// <param name="entities">Silinecek sepet nesneleri koleksiyonu</param>
         public async Task RemoveRangeAsync(IEnumerable<Baskett> entities)
         {
             foreach (var entity in entities)
@@ -148,25 +185,30 @@ namespace Basket.API.Data.Repository.Basket
             }
         }
 
+        /// <summary>
+        /// Sepeti günceller
+        /// </summary>
+        /// <param name="entity">Güncellenecek sepet nesnesi</param>
+        /// <returns>Güncelleme başarılı ise true, yoksa false</returns>
         public async Task<bool> UpdateAsync(Baskett entity)
         {
-            // Check if entity exists
+            // Nesnenin var olup olmadığını kontrol et
             if (!await ExistsAsync(entity.ID))
             {
                 return false;
             }
 
-            // Save the updated basket
+            // Güncellenmiş sepeti kaydet
             await SaveBasketToRedisAsync(entity);
 
-            // Update user-basket index if user ID changed
+            // Kullanıcı ID değiştiyse kullanıcı-sepet indeksini güncelle
             var existingBasket = await GetByIdAsync(entity.ID);
             if (existingBasket.UserId != entity.UserId)
             {
-                // Remove old mapping
+                // Eski eşleşmeyi kaldır
                 await _redisCache.RemoveAsync(GetUserBasketKey(existingBasket.UserId));
 
-                // Add new mapping
+                // Yeni eşleşme ekle
                 await _redisCache.SetStringAsync(
                     GetUserBasketKey(entity.UserId),
                     entity.ID.ToString(),
@@ -177,8 +219,12 @@ namespace Basket.API.Data.Repository.Basket
             return true;
         }
 
-        // Helper methods for Redis implementation
+        // Redis uygulaması için yardımcı metodlar
 
+        /// <summary>
+        /// Sepeti Redis'e kaydeder
+        /// </summary>
+        /// <param name="basket">Kaydedilecek sepet nesnesi</param>
         private async Task SaveBasketToRedisAsync(Baskett basket)
         {
             var basketJson = JsonSerializer.Serialize(basket);
@@ -189,10 +235,14 @@ namespace Basket.API.Data.Repository.Basket
                 new DistributedCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(30) }
             );
 
-            // Update basket ID list
+            // Sepet ID listesini güncelle
             await AddBasketIdAsync(basket.ID);
         }
 
+        /// <summary>
+        /// Bir sonraki sepet ID'sini alır
+        /// </summary>
+        /// <returns>Yeni sepet ID'si</returns>
         private async Task<int> GetNextIdAsync()
         {
             var nextIdKey = "basket:next_id";
@@ -204,7 +254,7 @@ namespace Basket.API.Data.Repository.Basket
                 nextId = storedNextId;
             }
 
-            // Increment for next use
+            // Bir sonraki kullanım için artır
             await _redisCache.SetStringAsync(
                 nextIdKey,
                 (nextId + 1).ToString(),
@@ -214,6 +264,10 @@ namespace Basket.API.Data.Repository.Basket
             return nextId;
         }
 
+        /// <summary>
+        /// Tüm sepet ID'lerini alır
+        /// </summary>
+        /// <returns>Sepet ID'leri listesi</returns>
         private async Task<List<int>> GetAllBasketIdsAsync()
         {
             var idsJson = await _redisCache.GetStringAsync("basket:ids");
@@ -225,6 +279,10 @@ namespace Basket.API.Data.Repository.Basket
             return JsonSerializer.Deserialize<List<int>>(idsJson);
         }
 
+        /// <summary>
+        /// Sepet ID'sini global listeye ekler
+        /// </summary>
+        /// <param name="id">Eklenecek sepet ID'si</param>
         private async Task AddBasketIdAsync(int id)
         {
             var ids = await GetAllBasketIdsAsync();
@@ -240,6 +298,10 @@ namespace Basket.API.Data.Repository.Basket
             }
         }
 
+        /// <summary>
+        /// Sepet ID'sini global listeden kaldırır
+        /// </summary>
+        /// <param name="id">Kaldırılacak sepet ID'si</param>
         private async Task RemoveBasketIdAsync(int id)
         {
             var ids = await GetAllBasketIdsAsync();
