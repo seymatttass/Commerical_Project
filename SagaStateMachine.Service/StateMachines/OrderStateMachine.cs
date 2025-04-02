@@ -13,14 +13,8 @@ using Shared.Settings;
 
 namespace SagaStateMachine.Service.StateMachines
 {
-    /// <summary>
-    /// Bu sınıf, bir sipariş işlem sürecini yöneten Saga State Machine'i tanımlar.
-    /// MassTransit kütüphanesi kullanılarak, mikroservisler arasındaki iletişimi koordine eder.
-    /// </summary>
     public class OrderStateMachine : MassTransitStateMachine<OrderStateInstance>
     {
-        // *** DURUMLAR (STATES) ***
-        // Saga'nın ilerleyebileceği tüm durumları tanımlıyoruz.
         public State ProductAdded { get; private set; }
         public State StockReserved { get; private set; }
         public State StockNotReserved { get; private set; }
@@ -29,16 +23,9 @@ namespace SagaStateMachine.Service.StateMachines
         public State PaymentCompleted { get; private set; }
         public State PaymentFailed { get; private set; }
         public State OrderCreated { get; private set; }
-
-        /// <summary>Sipariş tamamlandı durumu</summary>
         public State OrderCompleted { get; private set; }
-
-        /// <summary>Sipariş başarısız oldu durumu</summary>
         public State OrderFailed { get; private set; }
-        //public State UserReceived { get; private set; }
 
-        // Saga'nın dinleyeceği tüm olayları tanımlıyoruz. Bu olaylar, farklı mikroservislerden
-        // gelen mesajları temsil eder ve Saga'nın durumunu değiştirmesine neden olur.
 
         public Event<ProductAddedToBasketRequestEvent> ProductAddedToBasketRequestEvent { get; private set; }
         public Event<StockReservedEvent> StockReservedEvent { get; private set; }
@@ -49,26 +36,11 @@ namespace SagaStateMachine.Service.StateMachines
         public Event<StockReductionEvent> StockReductionEvent { get; private set; }
         public Event<OrderFailEvent> OrderFailEvent { get; private set; }
         public Event<OrderCompletedEvent> OrderCompletedEvent { get; private set; }
-
-        //public Event<GetAddressDetailResponseEvent> GetAddressDetailResponseEvent { get; private set; }
-        //public Event<GetUserDetailResponseEvent> GetUserDetailResponseEvent { get; private set; }                
-
-        /// <summary>
-        /// OrderStateMachine constructor'ı
-        /// Saga'nın tüm davranışını, durum geçişlerini ve olay korelasyonlarını burada tanımlıyoruz.
-        /// </summary>
+           
         public OrderStateMachine()
         {
-            // OrderStateInstance sınıfının CurrentState property'sinin, 
-            // Saga'nın mevcut durumunu tutacağını belirtiyoruz.
+
             InstanceState(x => x.CurrentState);
-
-            // *** OLAY KORELASYONLARI ***
-            // Her olayın hangi Saga instance'ı ile ilişkilendirileceğini tanımlıyoruz.
-            // CorrelationId kullanarak, gelen olayların doğru Saga instance'ına yönlendirilmesini sağlıyoruz.
-
-            // ProductAddedToBasketRequestEvent için korelasyon tanımı
-            // İlk olay olduğu için, yeni bir Guid oluşturarak yeni bir Saga instance'ı başlatıyoruz.
             Event(() => ProductAddedToBasketRequestEvent,
                 orderStateInstance => orderStateInstance.CorrelateById(@event => @event.Message.CorrelationId)
                 .SelectId(e => Guid.NewGuid()));
@@ -105,14 +77,10 @@ namespace SagaStateMachine.Service.StateMachines
                 orderStateInstance => orderStateInstance.CorrelateById(@event =>
                 @event.Message.CorrelationId));
 
-
-            // İlk gelen olay: ProductAddedToBasketRequestEvent
-            // Bu olay geldiğinde, yeni bir Saga instance'ı oluşturulur ve ProductAdded durumuna geçilir.
             Initially(
                 When(ProductAddedToBasketRequestEvent)
                     .Then(context =>
                     {
-                        // Saga instance'ına temel bilgileri kaydet
                         context.Instance.UserId = context.Data.UserId;
                         context.Instance.CreatedDate = DateTime.UtcNow;
                         context.Instance.TotalPrice = context.Data.Price * context.Data.Count;
@@ -121,7 +89,6 @@ namespace SagaStateMachine.Service.StateMachines
                         context.Instance.Price = context.Data.Price;
                     })
                     .TransitionTo(ProductAdded)
-                    // Stok kontrolü için mesaj gönder
                     .Send(new Uri($"queue:{RabbitMQSettings.Stock_CheckStockQueue}"),
                       context => new StockCheckedEvent(context.Instance.CorrelationId)
                       {
@@ -187,11 +154,8 @@ namespace SagaStateMachine.Service.StateMachines
             During(OrderCompleted,
                 When(StockReductionEvent)
                     .TransitionTo(StockReduced)
-                    // Saga'yı sonlandır
                     .Finalize()
             );
-
-            // Saga sonlandırıldığında completed statüsüne geçmesini sağlar
             SetCompletedWhenFinalized();
         }
     }

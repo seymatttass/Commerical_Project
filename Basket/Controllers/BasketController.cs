@@ -68,7 +68,6 @@ namespace Basket.API.Controllers
         [HttpPost]
         public async Task<ActionResult<Baskett>> CreateBasket(CreateBasketDTO basketDto)
         {
-            // Güvenlik için toplam fiyatı hesapla
             decimal calculatedTotalPrice = 0;
             
             {
@@ -87,7 +86,6 @@ namespace Basket.API.Controllers
         [HttpPost("items")]
         public async Task<ActionResult<BasketItem>> AddBasketItem(CreateBasketItemDTO itemDto)
         {
-            // ProductId artık CreateBasketItemDTO içinde tanımlanmalı
             if (itemDto.ProductId <= 0)
             {
                 return BadRequest("ProductId is required");
@@ -95,7 +93,6 @@ namespace Basket.API.Controllers
 
             var basketItem = await _basketItemService.AddAsync(itemDto);
 
-            // Sepet öğesi eklendiğinde event'i yayınla
             var productAddedEvent = new ProductAddedToBasketRequestEvent()
             {
                 ProductId = basketItem.ProductId,
@@ -137,9 +134,6 @@ namespace Basket.API.Controllers
             {
                 return BadRequest("Cannot checkout an empty basket");
             }
-
-            // Burada ödeme işlemi ve sipariş oluşturma mantığı eklenebilir
-            // Şimdilik sepeti siliyoruz
             var success = await _basketService.DeleteAsync(id);
 
             if (!success)

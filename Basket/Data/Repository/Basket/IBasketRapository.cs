@@ -8,7 +8,6 @@ namespace Basket.API.Data.Repository.Basket
         Task<IEnumerable<Baskett>> GetAllAsync();
         Task<IEnumerable<Baskett>> FindAsync(Expression<Func<Baskett, bool>> predicate);
         Task AddAsync(Baskett entity);
-        Task AddRangeAsync(IEnumerable<Baskett> entities);
         Task<bool> RemoveAsync(int id);
         Task RemoveRangeAsync(IEnumerable<Baskett> entities);
         Task<bool> UpdateAsync(Baskett entity);
