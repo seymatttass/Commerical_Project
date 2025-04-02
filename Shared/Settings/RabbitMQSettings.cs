@@ -47,9 +47,6 @@ namespace Shared.Settings
 
 
 
-
-
-
         public const string GetAddressDetailRequestEvent = "address-get-address-request-queue";
         public const string GetAddressDetailResponseEvent = "address-get-address-response-queue";
 
