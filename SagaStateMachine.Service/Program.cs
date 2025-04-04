@@ -14,13 +14,11 @@ builder.Services.AddHostedService<Worker>();
 
 builder.Services.AddMassTransit(configurator =>
 {
-    // Saga State Machine ve Repository konfigürasyonu
     configurator.AddSagaStateMachine<OrderStateMachine, OrderStateInstance>()
         .EntityFrameworkRepository(options =>
         {
-            // PostgreSQL ile çalýþýrken lock hints'leri devre dýþý býrak
-            options.ConcurrencyMode = ConcurrencyMode.Optimistic; // Optimistic concurrency kullan
-            options.LockStatementProvider = null; // SQL Server'a özgü kilitler kullanýlmasýn
+            options.ConcurrencyMode = ConcurrencyMode.Optimistic; 
+            options.LockStatementProvider = null; 
 
             options.AddDbContext<DbContext, OrderStateDbContext>((provider, _builder) =>
             {
@@ -38,7 +36,6 @@ builder.Services.AddMassTransit(configurator =>
         });
     });
 }); ;
-
 
 var host = builder.Build();
 host.Run();

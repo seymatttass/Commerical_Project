@@ -14,6 +14,6 @@ namespace Shared.Events.StockEvents
         {
             CorrelationId = correlationId;
         }
-        public string Message { get; set; } // Stok neden rezerve edilemedi?
+        public string Message { get; set; }
     }
 }

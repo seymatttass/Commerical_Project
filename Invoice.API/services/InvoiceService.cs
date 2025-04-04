@@ -74,10 +74,8 @@ namespace Invoice.API.services
         {
             try
             {
-                // DTO'dan entity'ye dönüştürme
                 var invoice = _mapper.Map<Data.Entities.Invoice>(updateInvoiceDto);
 
-                // Adres güncelleme
                 return await _invoiceRepository.UpdateAsync(invoice);
             }
             catch (Exception ex)

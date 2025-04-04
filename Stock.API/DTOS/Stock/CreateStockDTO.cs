@@ -6,6 +6,6 @@ namespace Stock.API.DTOS.Stock
     {
         public int ProductId { get; set; }
 
-        public int Count { get; set; }  //ürüne ait stok bilgisi.
+        public int Count { get; set; }  
     }
 }

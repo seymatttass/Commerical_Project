@@ -18,7 +18,7 @@ namespace Payment.API.DTOS.Payments
         public int PaymentType { get; set; } 
 
         [Required]
-        public DateTime Date { get; set; } // Ödeme tarihi
+        public DateTime Date { get; set; }
 
         [Required]
         [Range(0.01, double.MaxValue, ErrorMessage = "PaymentTotal must be greater than zero.")]

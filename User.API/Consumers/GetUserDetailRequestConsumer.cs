@@ -10,16 +10,12 @@ namespace Users.API.Consumers
 
         public async Task Consume(ConsumeContext<GetUserDetailRequestEvent> context)
         {
-            // Gelen talepteki UserId'yi alıyoruz
             var userId = context.Message.UserId;
 
-            // Kullanıcıyı veritabanından sorguluyoruz
             var user = await usersDbContext.Users.FindAsync(userId);
 
-            // Eğer kullanıcı varsa, bilgileri içeren bir yanıt gönderiyoruz
             if (user != null)
             {
-                // GetUserDetailResponseEvent mesajını oluşturuyoruz
                 var response =new GetUserDetailResponseEvent(context.Message.CorrelationId)
                 {
                     Id = user.Id,
@@ -31,16 +27,14 @@ namespace Users.API.Consumers
                     Birthdate = user.Birthdate,
                 };
 
-                // Yanıtı gönderiyoruz
                 await context.RespondAsync(response);
             }
             else
             {
-                // Eğer kullanıcı bulunamazsa, hata mesajı dönebiliriz
                 await context.RespondAsync(new
                 {
                     Message = "Kullanıcı bulunamadı...",
-                    CorrelationId = context.Message.CorrelationId // Hata mesajında da CorrelationId'yi gönderebiliriz
+                    CorrelationId = context.Message.CorrelationId 
                 });
             }
         }

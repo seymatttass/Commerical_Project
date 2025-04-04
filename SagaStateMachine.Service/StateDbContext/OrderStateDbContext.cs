@@ -20,8 +20,7 @@ namespace SagaStateMachine.Service.StateDbContext
         {
             get
             {
-                //db oluştur ve db oluştururken state ınstancelrın validasyn
-                //kurallarını da burada map den al.
+
                 yield return new OrderStateMap();
             }
         }

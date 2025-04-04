@@ -47,12 +47,10 @@ builder.Services.AddMassTransit(configurator =>
 
 var app = builder.Build();
 
-// Dependency Injection (DI) ile Migration işlemi ve Dummy Data ekleme
 using (var scope = app.Services.CreateScope())  
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<StockDbContext>();
 
-    // **Migration işlemini uygula** (Tablo yoksa oluşturur, varsa bir şey yapmaz)
     dbContext.Database.Migrate();
 
     if (!dbContext.Stocks.Any())
@@ -70,7 +68,7 @@ using (var scope = app.Services.CreateScope())
             new Stock.API.Data.Entities.Stock { ProductId = 10, Count = 60 }
         );
 
-        dbContext.SaveChanges();  // `await` gerektirmez, çünkü `Run()` blok içinde değil
+        dbContext.SaveChanges(); 
     }
 }
 

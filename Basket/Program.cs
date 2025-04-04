@@ -17,7 +17,6 @@ using Basket.API.Data.Entities;
 using System.Linq;
 using Basket.API.Consumers;
 
-// Web uygulamasý oluþturma
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
@@ -31,7 +30,6 @@ builder.Services.AddStackExchangeRedisCache(options =>
     options.InstanceName = "BasketCache:"; 
 });
 
-// MassTransit (mesaj kuyruk sistemi) 
 builder.Services.AddMassTransit(configurator =>
 {
     configurator.AddRequestClient<ProductAddedToBasketRequestEvent>();
@@ -42,7 +40,6 @@ builder.Services.AddMassTransit(configurator =>
     });
 });
 
-//Dependency Injection kaydý
 builder.Services.AddScoped<IBasketRepository, BasketRepository>();
 builder.Services.AddScoped<IBasketService, BasketService>();
 builder.Services.AddScoped<IBasketItemRepository, BasketItemRepository>();
@@ -66,9 +63,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-// Minimal API endpoint: Sepete ürün ekleme
 app.MapPost("/add-to-basket", async (
-    AddToBasketVM model,                      // Ýstek modelimiz
+    AddToBasketVM model,            
     IBasketRepository basketRepository,      
     IBasketItemRepository basketItemRepository, 
     BasketDbContext context,                  
@@ -79,7 +75,6 @@ app.MapPost("/add-to-basket", async (
     {
         UserId = model.UserId,
         TotalPrice = model.BasketItems.Sum(bi => bi.Price * bi.Count),
-        // Sepet öðelerini model üzerinden dönüþtürme
         BasketItems = model.BasketItems.Select(bi => new BasketItem
         {
             Price = bi.Price,
@@ -91,14 +86,12 @@ app.MapPost("/add-to-basket", async (
     await context.Baskets.AddAsync(baskett);
     await context.SaveChangesAsync();
 
-    // Saga State Machine'e gönderilecek event oluþturma
     ProductAddedToBasketRequestEvent productAddedEvent = new()
     {
         ProductId = model.ProductId,
         Count = model.Count,
         UserId = baskett.UserId,
         Price = model.Price,
-        // Sepetteki tüm ürünleri mesajlara dönüþtürme
         BasketItemMessages = baskett.BasketItems.Select(bi => new Shared.Messages.BasketItemMessage
         {
             Price = bi.Price,
@@ -107,11 +100,9 @@ app.MapPost("/add-to-basket", async (
         }).ToList(),
     };
 
-    // RabbitMQ kuyruðuna mesaj gönderme için endpoint oluþturma
     var sendEndpoint = await sendEndpointProvider.GetSendEndpoint(
         new Uri($"queue:{RabbitMQSettings.StateMachineQueue}"));
 
-    // Event'i kuyruða gönderme
     await sendEndpoint.Send<ProductAddedToBasketRequestEvent>(productAddedEvent);
 });
 

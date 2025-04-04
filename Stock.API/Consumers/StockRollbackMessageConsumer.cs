@@ -10,8 +10,6 @@ namespace Stock.API.Consumers
     {
         public async Task Consume(ConsumeContext<StockRollBackMessage> context)
         {
-            // Payment API'de bir ödeme sorunu olursa, Stock API'de yapılmış olan stok işlemlerinin geri alımını gerçekleştiriyoruz
-            // Compensable transaction
             foreach (var basketItem in context.Message.BasketItemMessages) 
             {
                 var stock = await stockDbContext.Stocks
@@ -19,8 +17,6 @@ namespace Stock.API.Consumers
 
                 if (stock != null)
                 {
-                    // Count özelliğini artırın (stock entity'nizdeki Count özelliği)
-                    // Özelliği bir değişkene atayıp işlem yaparak çakışmayı önleyelim
                     int currentCount = stock.Count;
                     stock.Count = currentCount + basketItem.Count;
                 }

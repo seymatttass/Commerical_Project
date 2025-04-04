@@ -73,10 +73,8 @@ namespace InvoiceDetails.services
         {
             try
             {
-                // DTO'dan entity'ye dönüştürme
                 var invoiceDetails = _mapper.Map<Data.Entities.InvoiceDetails>(updateInvoiceDetailsDto);
 
-                // Adres güncelleme
                 return await _invoiceDetailsRepository.UpdateAsync(invoiceDetails);
             }
             catch (Exception ex)

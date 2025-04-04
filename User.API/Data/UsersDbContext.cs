@@ -14,7 +14,6 @@ namespace Users.API.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
-            // İlişkileri ve konfigürasyonları burada tanımlayabilirsiniz.
         }
     }
 }

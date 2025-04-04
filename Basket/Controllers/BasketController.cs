@@ -27,7 +27,6 @@ namespace Basket.API.Controllers
             _publishEndpoint = publishEndpoint;
         }
 
-        // GET: api/Basket
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Baskett>>> GetBaskets()
         {
@@ -35,7 +34,6 @@ namespace Basket.API.Controllers
             return Ok(baskets);
         }
 
-        // GET: api/Basket/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Baskett>> GetBasket(int id)
         {
@@ -49,7 +47,6 @@ namespace Basket.API.Controllers
             return Ok(basket);
         }
 
-        // GET: api/Basket/user/5
         [HttpGet("user/{userId}")]
         public async Task<ActionResult<Baskett>> GetBasketByUserId(int userId)
         {
@@ -64,7 +61,6 @@ namespace Basket.API.Controllers
             return Ok(basket);
         }
 
-        // POST: api/Basket
         [HttpPost]
         public async Task<ActionResult<Baskett>> CreateBasket(CreateBasketDTO basketDto)
         {
@@ -82,7 +78,6 @@ namespace Basket.API.Controllers
         }
 
 
-        // POST: api/Basket/items
         [HttpPost("items")]
         public async Task<ActionResult<BasketItem>> AddBasketItem(CreateBasketItemDTO itemDto)
         {
@@ -105,7 +100,6 @@ namespace Basket.API.Controllers
             return CreatedAtAction("GetBasketItem", "BasketItem", new { id = basketItem.ID }, basketItem);
         }
 
-        // GET: api/Basket/items/5
         [HttpGet("items/{id}")]
         public async Task<ActionResult<BasketItem>> GetBasketItem(int id)
         {
@@ -119,7 +113,6 @@ namespace Basket.API.Controllers
             return Ok(basketItem);
         }
 
-        // POST: api/Basket/checkout/5
         [HttpPost("checkout/{id}")]
         public async Task<IActionResult> CheckoutBasket(int id)
         {

@@ -8,7 +8,6 @@ namespace Invoice.API.Mapping
 
         public InvoiceAutoMapperProfile()
         {
-                        //dto dönüşüm kodları
             CreateMap<CreateInvoiceDTO, Data.Entities.Invoice>()
                 .ReverseMap();
 

@@ -3,18 +3,19 @@ using Shared.Messages;
 using System;
 using System.Collections.Generic;
 
-namespace Shared.Events.BasketEvents
+namespace Shared.Events.OrderCreatedEvent
 {
-    public class ProductAddedToBasketRequestEvent : CorrelatedBy<Guid>
+    public class CreateOrderCommand : CorrelatedBy<Guid>
     {
+        public CreateOrderCommand(Guid correlationId)
+        {
+            CorrelationId = correlationId;
+        }
+
         public Guid CorrelationId { get; set; }
-        public int ProductId { get; set; }
-        public int Count { get; set; }
-        public decimal Price { get; set; }
         public int UserId { get; set; }
-
         public int BasketId { get; set; }
-
+        public decimal TotalPrice { get; set; }
         public List<BasketItemMessage> BasketItemMessages { get; set; }
     }
 }

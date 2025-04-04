@@ -11,7 +11,7 @@ namespace Basket.API.Consumers
         public async Task Consume(ConsumeContext<BasketFailedEvent> context)
         {
             Basket.API.Data.Entities.Baskett basket = await basketDbContext.Baskets.FindAsync(context.Message.BasketId);
-            if (basket != null) //basketıd ye karşılık sipariş varsa if e girecek
+            if (basket != null)
             {
                 await basketDbContext.SaveChangesAsync();
             }

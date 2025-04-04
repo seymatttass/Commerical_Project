@@ -16,10 +16,6 @@ namespace Stock.API.Data
 
             modelBuilder.Entity<Entities.Stock>(entity =>
             {
-                //entity.ToTable("Addres");
-                //entity.HasKey(e => e.Id);
-                //entity.Property(e => e.CategoryName).IsRequired().HasMaxLength(100);
-                //entity.Property(e => e.CategoryDescription).HasMaxLength(500);
             });
         }
     }

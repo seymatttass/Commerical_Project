@@ -21,7 +21,6 @@ namespace Order.API.Controllers
             _mapper = mapper;
         }
 
-        // GET: api/orders
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Orderss>>> GetAllOrders()
         {
@@ -29,7 +28,6 @@ namespace Order.API.Controllers
             return Ok(orders);
         }
 
-        // GET: api/orders/{id}
         [HttpGet("{id}")]
         public async Task<ActionResult<Orderss>> GetOrderById(int id)
         {
@@ -40,7 +38,6 @@ namespace Order.API.Controllers
             return Ok(order);
         }
 
-        // POST: api/orders
         [HttpPost]
         public async Task<ActionResult> CreateOrder([FromBody] CreateOrdersDTO orderDTO)
         {
@@ -49,7 +46,6 @@ namespace Order.API.Controllers
             return CreatedAtAction(nameof(GetOrderById), new { id = order.ID }, order);
         }
 
-        // PUT: api/orders/{id}
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateOrder(int id, [FromBody] UpdateOrdersDTO orderDTO)
         {
@@ -67,7 +63,6 @@ namespace Order.API.Controllers
             return NoContent();
         }
 
-        // DELETE: api/orders/{id}
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteOrder(int id)
         {

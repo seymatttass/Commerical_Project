@@ -8,7 +8,6 @@ namespace Address.API.Mapping
         public AddressAutoMapperProfile()
         {
 
-            //dto dönüşüm kodları
             CreateMap<CreateAddressDTO, Addres>()
                 .ReverseMap();
 

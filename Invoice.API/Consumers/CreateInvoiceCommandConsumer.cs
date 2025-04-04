@@ -14,7 +14,6 @@ namespace Invoice.API.Consumers
         {
             try
             {
-                // Fatura oluşturma
                 var newInvoice = new Data.Entities.Invoice
                 {
                     OrderId = context.Message.OrderId,
@@ -23,11 +22,9 @@ namespace Invoice.API.Consumers
                     Cargoficheno = context.Message.Cargoficheno
                 };
 
-                // DbContext'i kullanarak veritabanına kaydedelim
                 await invoiceDbContext.Invoices.AddAsync(newInvoice);
                 await invoiceDbContext.SaveChangesAsync();
 
-                // Fatura oluşturuldu bilgisini yanıt olarak gönderelim
                 var response = new InvoiceCreatedEvent(context.Message.CorrelationId)
                 {
                     InvoiceId = newInvoice.Id,
@@ -40,7 +37,6 @@ namespace Invoice.API.Consumers
             }
             catch (Exception ex)
             {
-                // Hata durumunda bildirim gönderelim
                 await context.RespondAsync(new
                 {
                     Message = $"Fatura oluşturulurken hata: {ex.Message}",

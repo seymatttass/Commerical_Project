@@ -209,7 +209,6 @@ app.MapPost("/add-to-basket", async (ProductDbContext context, MassTransit.ISend
         ProductId = firstProduct.Id,
         Count = 1, // Örnek olarak 1 tane ekliyoruz, isteğe göre değiştirilebilir
         UserId = 1, // Sabit bir kullanıcı ID belirtiyoruz, bunu isteğe göre değiştirebilirsin
-        Name = firstProduct.Name,
         Price = firstProduct.Price
     };
 

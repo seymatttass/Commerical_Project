@@ -11,29 +11,23 @@ using Shipping.API.service;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 builder.Services.AddControllers();
 
-// DbContext configuration
 builder.Services.AddDbContext<ShippingDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// AutoMapper configuration
 builder.Services.AddAutoMapper(typeof(Program));
 
-// Repository and Service registrations
 builder.Services.AddScoped<IShippingRepository, ShippingRepository>();
 builder.Services.AddScoped<IShippingService, ShippingService>();
 
-// Validator'larý kaydedin
 builder.Services.AddValidatorsFromAssemblyContaining<CreateShippingDtoValidator>();
 builder.Services.AddValidatorsFromAssemblyContaining<UpdateShippingDtoValidator>();
 
-// Swagger
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// ? **MassTransit konfigürasyonunu `builder.Build();` öncesine taþý**
 builder.Services.AddMassTransit(configurator =>
 {
     configurator.AddConsumer<ShippingCompletedEventConsumer>();
@@ -55,9 +49,8 @@ builder.Services.AddMassTransit(configurator =>
     });
 });
 
-var app = builder.Build(); // ? **Buradan sonra servis eklenmemeli!**
+var app = builder.Build(); 
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();

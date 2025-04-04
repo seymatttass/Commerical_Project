@@ -26,7 +26,6 @@ namespace SagaStateMachine.Service.StateMachines
         public State OrderCompleted { get; private set; }
         public State OrderFailed { get; private set; }
 
-
         public Event<ProductAddedToBasketRequestEvent> ProductAddedToBasketRequestEvent { get; private set; }
         public Event<StockReservedEvent> StockReservedEvent { get; private set; }
         public Event<StockNotReservedEvent> StockNotReservedEvent { get; private set; }
@@ -36,46 +35,37 @@ namespace SagaStateMachine.Service.StateMachines
         public Event<StockReductionEvent> StockReductionEvent { get; private set; }
         public Event<OrderFailEvent> OrderFailEvent { get; private set; }
         public Event<OrderCompletedEvent> OrderCompletedEvent { get; private set; }
-           
+
         public OrderStateMachine()
         {
-
             InstanceState(x => x.CurrentState);
+
             Event(() => ProductAddedToBasketRequestEvent,
-                orderStateInstance => orderStateInstance.CorrelateById(@event => @event.Message.CorrelationId)
-                .SelectId(e => Guid.NewGuid()));
+                x => x.CorrelateById(e => e.Message.CorrelationId).SelectId(e => Guid.NewGuid()));
 
             Event(() => StockReservedEvent,
-                orderStateInstance => orderStateInstance.CorrelateById(@event =>
-                @event.Message.CorrelationId));
+                x => x.CorrelateById(e => e.Message.CorrelationId));
 
             Event(() => StockNotReservedEvent,
-                orderStateInstance => orderStateInstance.CorrelateById(@event =>
-                @event.Message.CorrelationId));
+                x => x.CorrelateById(e => e.Message.CorrelationId));
 
             Event(() => PaymentStartedEvent,
-                orderStateInstance => orderStateInstance.CorrelateById(@event =>
-                @event.Message.CorrelationId));
+                x => x.CorrelateById(e => e.Message.CorrelationId));
 
             Event(() => PaymentCompletedEvent,
-                orderStateInstance => orderStateInstance.CorrelateById(@event =>
-                @event.Message.CorrelationId));
+                x => x.CorrelateById(e => e.Message.CorrelationId));
 
             Event(() => PaymentFailedEvent,
-                orderStateInstance => orderStateInstance.CorrelateById(@event =>
-                @event.Message.CorrelationId));
+                x => x.CorrelateById(e => e.Message.CorrelationId));
 
             Event(() => StockReductionEvent,
-                orderStateInstance => orderStateInstance.CorrelateById(@event =>
-                @event.Message.CorrelationId));
+                x => x.CorrelateById(e => e.Message.CorrelationId));
 
             Event(() => OrderFailEvent,
-                orderStateInstance => orderStateInstance.CorrelateById(@event =>
-                @event.Message.CorrelationId));
+                x => x.CorrelateById(e => e.Message.CorrelationId));
 
             Event(() => OrderCompletedEvent,
-                orderStateInstance => orderStateInstance.CorrelateById(@event =>
-                @event.Message.CorrelationId));
+                x => x.CorrelateById(e => e.Message.CorrelationId));
 
             Initially(
                 When(ProductAddedToBasketRequestEvent)
@@ -87,43 +77,69 @@ namespace SagaStateMachine.Service.StateMachines
                         context.Instance.ProductId = context.Data.ProductId;
                         context.Instance.Count = context.Data.Count;
                         context.Instance.Price = context.Data.Price;
+                        context.Instance.BasketId = context.Data.BasketId;
                     })
                     .TransitionTo(ProductAdded)
                     .Send(new Uri($"queue:{RabbitMQSettings.Stock_CheckStockQueue}"),
-                      context => new StockCheckedEvent(context.Instance.CorrelationId)
-                      {
-                          ProductId = context.Instance.ProductId,
-                          Count = context.Instance.Count
-                      }));
+                        context => new StockCheckedEvent(context.Instance.CorrelationId)
+                        {
+                            ProductId = context.Instance.ProductId,
+                            Count = context.Instance.Count
+                        })
+            );
 
             During(ProductAdded,
                 When(StockReservedEvent)
                     .TransitionTo(StockReserved)
                     .Send(new Uri($"queue:{RabbitMQSettings.Payment_PaymentStartedQueue}"),
-                          context => new PaymentStartedEvent(context.Instance.CorrelationId)
-                          {
-                              TotalPrice = context.Instance.TotalPrice
-                          }),
+                        context => new PaymentStartedEvent(context.Instance.CorrelationId)
+                        {
+                            TotalPrice = context.Instance.TotalPrice,
+                            BasketItemMessages = new List<BasketItemMessage>
+                            {
+                                new BasketItemMessage
+                                {
+                                    ProductId = context.Instance.ProductId,
+                                    Count = context.Instance.Count,
+                                    Price = context.Instance.Price
+                                }
+                            }
+                        }),
 
                 When(StockNotReservedEvent)
                     .TransitionTo(StockNotReserved)
                     .Send(new Uri($"queue:{RabbitMQSettings.Order_OrderFailedQueue}"),
-                          context => new OrderFailEvent(context.Data.CorrelationId)
-                          {
-                              OrderId = context.Instance.OrderId,
-                              Message = "Stok yetersiz."
-                          })
+                        context => new OrderFailEvent(context.Data.CorrelationId)
+                        {
+                            OrderId = context.Instance.OrderId,
+                            Message = "Stok yetersiz."
+                        })
             );
 
-          
             During(StockReserved,
                 When(PaymentCompletedEvent)
+                    .Then(context =>
+                    {
+                  
+                    })
                     .TransitionTo(PaymentCompleted)
-                    .Send(new Uri($"queue:{RabbitMQSettings.Order_OrderCompletedQueue}"),
-                        context => new OrderCompletedEvent(context.Instance.CorrelationId)
+                    .Send(new Uri($"queue:{RabbitMQSettings.Order_OrderCreatedQueue}"),
+                        context => new CreateOrderCommand(context.Instance.CorrelationId)
                         {
-                            OrderId = context.Instance.OrderId
+                            UserId = context.Instance.UserId,
+                            BasketId = context.Instance.BasketId,
+                            TotalPrice = context.Instance.TotalPrice,
+                            BasketItemMessages = new List<BasketItemMessage>
+                            {
+                                new BasketItemMessage
+                                {
+                                    ProductId = context.Instance.ProductId,
+                                    Count = context.Instance.Count,
+                                    Price = context.Instance.Price
+                                }
+                            }
                         }),
+
                 When(PaymentFailedEvent)
                     .TransitionTo(PaymentFailed)
                     .Send(new Uri($"queue:{RabbitMQSettings.Order_OrderFailedQueue}"),
@@ -132,14 +148,14 @@ namespace SagaStateMachine.Service.StateMachines
                             OrderId = context.Instance.OrderId,
                             Message = context.Data.Message
                         })
-                    .Send(new Uri($"queue:{RabbitMQSettings.Stock_RollbackMessageQueue}"),
-                        context => new StockRollBackMessage(context.Instance.CorrelationId)
-                        {
-                            BasketItemMessages = context.Data.BasketItemMessages
-                        }));
+            );
 
             During(PaymentCompleted,
                 When(OrderCompletedEvent)
+                    .Then(context =>
+                    {
+                        context.Instance.OrderId = context.Data.OrderId;
+                    })
                     .TransitionTo(OrderCompleted)
                     .Send(new Uri($"queue:{RabbitMQSettings.Stock_ReductionQueue}"),
                         context => new StockReductionEvent(context.Instance.CorrelationId)
@@ -150,30 +166,16 @@ namespace SagaStateMachine.Service.StateMachines
                         })
             );
 
-
             During(OrderCompleted,
                 When(StockReductionEvent)
                     .TransitionTo(StockReduced)
                     .Finalize()
             );
+
             SetCompletedWhenFinalized();
         }
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

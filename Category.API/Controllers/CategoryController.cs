@@ -36,7 +36,6 @@ namespace Category.API.Controllers
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateCategoryDTO createCategoryDto)
         {
-            // Aynı isme sahip bir kategori olup olmadığını kontrol et
             var existingCategory = await _categoryService.GetAllAsync();
             if (existingCategory.Any(c => c.Name.Equals(createCategoryDto.Name, StringComparison.OrdinalIgnoreCase)))
             {

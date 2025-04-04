@@ -75,7 +75,6 @@ namespace Users.API.Data.Repository
             return true;
         }
 
-        // Kullanıcı doğrulama işlemi
         public async Task<Userss?> AuthenticateAsync(string username, string password)
         {
             return await _dbContext.Users.FirstOrDefaultAsync(x => x.Username == username && x.Password == password);

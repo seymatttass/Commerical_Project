@@ -75,13 +75,11 @@ namespace Payment.API.Data.Repository
             return true;
         }
 
-        // Belirli bir siparişe ait ödemeleri getir
         public async Task<IEnumerable<Paymentt>> GetPaymentsByOrderIdAsync(int orderId)
         {
             return await _dbContext.Payments.Where(p => p.OrderId == orderId).ToListAsync();
         }
 
-        // Belirli bir sepet (basket) için ödeme yapılıp yapılmadığını kontrol et
         public async Task<bool> HasPaymentForBasketAsync(int basketId)
         {
             return await _dbContext.Payments.AnyAsync(p => p.BasketId == basketId);

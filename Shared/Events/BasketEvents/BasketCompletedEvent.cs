@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 
 namespace Shared.Events.BasketEvents
 {
-    //Basket.API ürünü sepete ekler ve BasketItemAddedEvent ile işlemin tamamlandığını bildirir 
     public class BasketCompletedEvent : CorrelatedBy<Guid>
     {
         public BasketCompletedEvent(Guid correlationId)

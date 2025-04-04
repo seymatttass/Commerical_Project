@@ -71,10 +71,8 @@ namespace Address.API.services
         {
             try
             {
-                // DTO'dan entity'ye dönüştürme
                 var address = _mapper.Map<Addres>(updateAddressDto);
 
-                // Adres güncelleme
                 return await _addressRepository.UpdateAsync(address);
             }
             catch (Exception ex)

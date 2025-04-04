@@ -8,30 +8,15 @@ using Basket.API.DTOS.BasketDTO;
 
 namespace Basket.API.Data.Repository
 {
-    /// <summary>
-    /// Redis önbellek kullanarak sepet öğelerini yöneten depo sınıfı.
-    /// IBasketItemRepository arayüzünü uygular ve sepet öğesi işlemlerini Redis'te gerçekleştirir.
-    /// </summary>
     public class BasketItemRepository : IBasketItemRepository
     {
-        private readonly IDistributedCache _redisCache; // Redis önbellek bağlantısı
-        private readonly string _basketItemPrefix = "basketitem:"; // Sepet öğesi anahtarları için önek
-
-        /// <summary>
-        /// BasketItemRepository sınıfı için yapıcı metod
-        /// </summary>
-        /// <param name="redisCache">DI ile enjekte edilen Redis önbellek nesnesi</param>
+        private readonly IDistributedCache _redisCache;
+        private readonly string _basketItemPrefix = "basketitem:"; 
         public BasketItemRepository(IDistributedCache redisCache)
         {
             _redisCache = redisCache;
         }
 
-        /// <summary>
-        /// Bir sepete yeni bir öğe ekler
-        /// </summary>
-        /// <param name="basketId">Öğenin ekleneceği sepet ID'si</param>
-        /// <param name="dto">Eklenecek öğe bilgilerini içeren DTO</param>
-        /// <returns>Eklenen sepet öğesi</returns>
         public async Task<BasketItem> AddToBasketAsync(int basketId, AddToBasketItemDTO dto)
         {
             var basketItem = new BasketItem
@@ -45,11 +30,6 @@ namespace Basket.API.Data.Repository
             return basketItem;
         }
         
-        /// <summary>
-        /// Sepet öğesi ID'sine göre Redis anahtarını oluşturur
-        /// </summary>
-        /// <param name="id">Sepet öğesi ID'si</param>
-        /// <returns>Redis'te kullanılacak tam anahtar adı</returns>
         private string GetBasketItemKey(int id)
         {
             return $"{_basketItemPrefix}{id}";
@@ -68,13 +48,8 @@ namespace Basket.API.Data.Repository
         }
 
 
-
-        /// <summary>
-        /// Yeni bir sepet öğesi ekler
-        /// </summary>
         public async Task AddAsync(BasketItem basketItem)
         {
-            // Eğer ID atanmamışsa yeni bir ID ata
             if (basketItem.ID <= 0)
             {
                 basketItem.ID = await GetNextItemIdAsync();
@@ -87,11 +62,6 @@ namespace Basket.API.Data.Repository
             );
         }
 
-        /// <summary>
-        /// Sepet öğesini ID'ye göre siler
-        /// </summary>
-        /// <param name="itemId">Silinecek sepet öğesi ID'si</param>
-        /// <returns>Silme başarılı ise true, yoksa false</returns>
         public async Task<bool> RemoveAsync(int itemId)
         {
             var existingItem = await GetByIdAsync(itemId);
@@ -104,11 +74,6 @@ namespace Basket.API.Data.Repository
             return true;
         }
 
-        /// <summary>
-        /// Sepet öğesini günceller
-        /// </summary>
-        /// <param name="basketItem">Güncellenecek sepet öğesi nesnesi</param>
-        /// <returns>Güncelleme başarılı ise true, yoksa false</returns>
         public async Task<bool> UpdateAsync(BasketItem basketItem)
         {
             var existingItem = await GetByIdAsync(basketItem.ID);
@@ -125,9 +90,6 @@ namespace Basket.API.Data.Repository
             return true;
         }
 
-        /// <summary>
-        /// Bir sonraki sepet öğesi ID'sini alır
-        /// </summary>
         private async Task<int> GetNextItemIdAsync()
         {
             var nextIdKey = "basketitem:next_id";

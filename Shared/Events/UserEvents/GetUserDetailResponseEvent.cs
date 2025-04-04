@@ -15,7 +15,6 @@ namespace Shared.Events.UserEvents
         }
         public Guid CorrelationId { get; set; }
 
-        // Kullanıcı detay bilgileri
         public int Id { get; set; }
         public string Username { get; set; }
         public string Name { get; set; }

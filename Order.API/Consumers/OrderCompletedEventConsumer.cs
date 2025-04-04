@@ -10,13 +10,11 @@ namespace Order.API.Consumers
         public async Task Consume(ConsumeContext<OrderCompletedEvent> context)
         {
             Order.API.Data.Entities.Orderss order = await orderDbContext.Orderss.FindAsync(context.Message.OrderId);
-            if (order != null) //orderıd ye karşılık sipariş varsa 
+            if (order != null)
             {
                 order.OrderStatus = Data.Enums.OrdeStatus.Completed;
                 await orderDbContext.SaveChangesAsync();
             }
-
-
         }
     }
 }
