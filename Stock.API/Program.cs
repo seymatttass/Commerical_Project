@@ -35,7 +35,7 @@ builder.Services.AddMassTransit(configurator =>
     configurator.UsingRabbitMq((context, _configure) =>
     {
         _configure.Host(builder.Configuration["RabbitMQ"]);
-        _configure.ReceiveEndpoint(RabbitMQSettings.Order_OrderCreatedQueue, e =>
+        _configure.ReceiveEndpoint(RabbitMQSettings.Stock_ReductionQueue, e =>
             e.ConfigureConsumer<StockReductionEventConsumer>(context));
         _configure.ReceiveEndpoint(RabbitMQSettings.Stock_RollbackMessageQueue, e =>
             e.ConfigureConsumer<StockRollbackMessageConsumer>(context));

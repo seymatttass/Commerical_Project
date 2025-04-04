@@ -5,7 +5,6 @@ using Shared.Events.BasketEvents;
 using Shared.Events.OrderCreatedEvent;
 using Shared.Events.PaymentEvents;
 using Shared.Events.StockEvents;
-using Shared.Events.StockReductionEvent;
 using Shared.Events.UserEvents;
 using Shared.Message;
 using Shared.Messages;
@@ -157,13 +156,20 @@ namespace SagaStateMachine.Service.StateMachines
                         context.Instance.OrderId = context.Data.OrderId;
                     })
                     .TransitionTo(OrderCompleted)
-                    .Send(new Uri($"queue:{RabbitMQSettings.Stock_ReductionQueue}"),
+                   .Send(new Uri($"queue:{RabbitMQSettings.Stock_ReductionQueue}"),
                         context => new StockReductionEvent(context.Instance.CorrelationId)
-                        {
-                            OrderId = context.Instance.OrderId,
-                            ProductId = context.Instance.ProductId,
-                            Count = context.Instance.Count
-                        })
+                         {
+                              OrderId = context.Instance.OrderId,
+                              OrderItems = new List<BasketItemMessage> // ← Burası önemli!
+                         {
+                new BasketItemMessage
+            {
+                ProductId = context.Instance.ProductId,
+                Count = context.Instance.Count,
+                Price = context.Instance.Price
+            }
+        }
+    })
             );
 
             During(OrderCompleted,

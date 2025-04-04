@@ -1,7 +1,6 @@
 ﻿using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Shared.Events.OrderCreatedEvent;
-using Shared.Events.StockReductionEvent;
 using Stock.API.Data;
 using Stock.API.Data.Entities;
 

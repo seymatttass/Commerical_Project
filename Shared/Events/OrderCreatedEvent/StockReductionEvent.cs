@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Shared.Events.StockReductionEvent
+namespace Shared.Events.OrderCreatedEvent
 {
     public class StockReductionEvent : CorrelatedBy<Guid>
     {
