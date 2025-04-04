@@ -56,30 +56,21 @@ Bu proje, mikro servis mimarisi ve **SAGA Pattern** kullanarak geliştirilmiş b
 
 - .NET 8.0 SDK  
 - Docker Desktop  
-- Visual Studio 2022 (önerilen)  
+- Visual Studio 
 - PostgreSQL (lokal ya da Docker container)  
 - Redis (Docker container)  
-- RabbitMQ (Docker container)  
+- RabbitMQ  
 
 ### Docker Servislerini Başlat
 
 ```bash
 # Redis
 docker run --name redis-microservices -p 6379:6379 -d redis
-
-# RabbitMQ
-docker run --name rabbitmq-microservices -p 5672:5672 -p 15672:15672 -d rabbitmq:management
-
-# PostgreSQL
-docker run --name postgres-microservices -e POSTGRES_PASSWORD=postgres -p 5432:5432 -d postgres
 ```
 
 Proje Ayarları
-1. appsettings.json Ayarları
-Her mikroservisin appsettings.json dosyasında kendi bağlantı dizelerini güncelleyin:
-
-2. Migration İşlemleri
-Her mikroservis için veritabanı migration işlemlerini gerçekleştirin:
+- Her mikroservisin appsettings.json dosyasında kendi bağlantı dizelerini güncelleyin:
+- Her mikroservis için veritabanı migration işlemlerini gerçekleştirin:
 ```bash
 {
   "Logging": {
@@ -121,51 +112,7 @@ Mikroservisler arası iletişim RabbitMQ üzerinden event-driven yaklaşımla sa
 
 Projemiz, dağıtık işlemleri yönetmek için Orkestrasyon tabanlı SAGA Pattern kullanır. Tipik bir sipariş akışı şu adımlardan oluşur:
 
-### Normal Akış Senaryosu:
-
-1. **Sepete Ürün Ekleme**:
-   * Kullanıcı sepete ürün ekler (Basket.API)
-   * `ProductAddedToBasketRequestEvent` SagaStateMachine'e iletilir
-   * Saga durumu `ProductAdded` olarak güncellenir
-
-2. **Stok Kontrolü**:
-   * SagaStateMachine `StockCheckedEvent` mesajını Stock.API'ye gönderir
-   * Stock.API stok durumunu kontrol eder
-   * Stok yeterliyse `StockReservedEvent` döner
-   * Saga durumu `StockReserved` olarak güncellenir
-
-3. **Ödeme İşlemi**:
-   * SagaStateMachine `PaymentStartedEvent` mesajını Payment.API'ye gönderir
-   * Payment.API ödeme işlemini gerçekleştirir
-   * Ödeme başarılıysa `PaymentCompletedEvent` döner
-   * Saga durumu `PaymentCompleted` olarak güncellenir
-
-4. **Sipariş Oluşturma**:
-   * SagaStateMachine `CreateOrderEvent` mesajını Order.API'ye gönderir
-   * Order.API Redis'teki sepet verilerini PostgreSQL'e kaydeder
-   * İşlem başarılıysa `OrderCompletedEvent` döner
-   * Saga durumu `OrderCompleted` olarak güncellenir
-
-5. **Stok Güncelleme**:
-   * SagaStateMachine `StockReductionEvent` mesajını Stock.API'ye gönderir
-   * Stock.API stok miktarını kalıcı olarak azaltır
-   * İşlem başarılıysa `StockReductionEvent` döner
-   * Saga durumu `StockReduced` olarak güncellenir ve işlem tamamlanır
-
-### Hata Senaryoları:
-
-1. **Stok Yetersiz Senaryosu**:
-   * Stock.API stok yetersiz bulursa `StockNotReservedEvent` döner
-   * Saga durumu `StockNotReserved` olarak güncellenir
-   * `OrderFailEvent` ile kullanıcıya "Stok yetersiz" mesajı iletilir
-   * İşlem sonlandırılır
-
-2. **Ödeme Başarısız Senaryosu**:
-   * Payment.API ödeme işlemi başarısız olursa `PaymentFailedEvent` döner
-   * Saga durumu `PaymentFailed` olarak güncellenir
-   * `StockRollBackMessage` ile rezerve edilen stok serbest bırakılır
-   * `OrderFailEvent` ile kullanıcıya ödeme hata mesajı iletilir
-   * İşlem sonlandırılır
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,?
 
 🔄 SAGA Pattern Akış Detayları
 Bu proje Orkestrasyon tabanlı SAGA Pattern ile çalışmaktadır. Tipik bir sipariş süreci:
