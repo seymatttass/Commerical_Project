@@ -47,8 +47,9 @@ namespace Product.API.Data.Repository.CategoryRepository
         public async Task<bool> RemoveAsync(int id)
         {
             var category = await GetByIdAsync(id);
-            if (category != null)
+            if (category == null)
             {
+                // Eğer veritabanında böyle bir kategori yoksa
                 return false;
             }
 
@@ -56,6 +57,7 @@ namespace Product.API.Data.Repository.CategoryRepository
             await _dbContext.SaveChangesAsync();
             return true;
         }
+
 
 
         public async Task RemoveRangeAsync(IEnumerable<Entities.Category> entities)

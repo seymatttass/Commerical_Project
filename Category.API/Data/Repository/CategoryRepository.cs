@@ -49,8 +49,9 @@ namespace Category.API.Data.Repository
         public async Task<bool> RemoveAsync(int id)
         {
             var category = await GetByIdAsync(id);
-            if (category != null)
+            if (category == null)
             {
+                // Kategori yoksa false dön
                 return false;
             }
 
