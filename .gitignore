@@ -367,7 +367,15 @@ FodyWeavers.xsd
 **/Migrations/*
 !**/Migrations/README.md
 
+
 # AppSettings files
 **/appsettings.json
-**/appsettings.*.json
-!**/appsettings.example.json
+*/appsettings..json
+!/appsettings.example.json
+
+
+# Docker files to ignore
+Dockerfile
+docker-compose.yml
+.dockerignore
+docker/

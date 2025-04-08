@@ -1,47 +1,43 @@
 ﻿using AutoMapper;
 using Category.API.Data.Repository;
 using Category.API.DTOS.Category;
+using Category.API.services;
 using Microsoft.Extensions.Logging;
 using System.Net.Http;
 using System.Net.Http.Json;
 
-namespace Category.API.services
+namespace Category.API.Services
 {
     public class CategoryService : ICategoryService
     {
         private readonly ICategoryRepository _categoryRepository;
         private readonly IMapper _mapper;
         private readonly ILogger<CategoryService> _logger;
-
-        // 1️⃣ IHttpClientFactory'yi ekliyoruz
         private readonly IHttpClientFactory _httpClientFactory;
 
         public CategoryService(
             ICategoryRepository categoryRepository,
             IMapper mapper,
             ILogger<CategoryService> logger,
-            IHttpClientFactory httpClientFactory // <--- Yeni eklendi
-        )
+            IHttpClientFactory httpClientFactory)
         {
             _categoryRepository = categoryRepository;
             _mapper = mapper;
             _logger = logger;
-            _httpClientFactory = httpClientFactory; // <--- Constructor'da saklanıyor
+            _httpClientFactory = httpClientFactory;
         }
 
         public async Task<Data.Entities.Category> AddAsync(CreateCategoryDTO createCategoryDto)
         {
             try
             {
-                // 2️⃣ Önce Category API veritabanına kaydet
+                // 1️⃣ Önce Category veritabanına kaydet
                 var categoryEntity = _mapper.Map<Data.Entities.Category>(createCategoryDto);
                 await _categoryRepository.AddAsync(categoryEntity);
 
-                // 3️⃣ Product API'ye REST isteği atmak
-                //    - "ProductApi" adında bir HttpClient oluşturuyoruz
-                var client = _httpClientFactory.CreateClient("ProductApi");
+                // 2️⃣ Product.API’ye REST ile bildirim gönder
+                var client = _httpClientFactory.CreateClient("Product.API");
 
-                //    - Göndereceğimiz JSON gövdesi
                 var productApiDto = new
                 {
                     Name = categoryEntity.Name,
@@ -49,35 +45,19 @@ namespace Category.API.services
                     Active = categoryEntity.Active
                 };
 
-                //    - Örnek rota: /api/categories
                 var response = await client.PostAsJsonAsync("/api/categories", productApiDto);
 
-                // 4️⃣ Yanıtı kontrol ediyoruz
                 if (!response.IsSuccessStatusCode)
                 {
-                    _logger.LogWarning("Product API'ye kategori eklerken hata oluştu. Status code: {StatusCode}",
-                                       response.StatusCode);
-                    // Gerekirse burada geri alma veya tekrar deneme (retry) mekanizması düşünebilirsiniz.
+                    _logger.LogWarning("Product API'ye kategori aktarımı başarısız. StatusCode: {StatusCode}", response.StatusCode);
+                    // Gerekirse retry veya rollback mekanizması düşünülebilir
                 }
 
                 return categoryEntity;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error while creating categories and sending to Product API");
-                throw;
-            }
-        }
-
-        public async Task<bool> DeleteAsync(int id)
-        {
-            try
-            {
-                return await _categoryRepository.RemoveAsync(id);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Error while deleting categories {id}");
+                _logger.LogError(ex, "Kategori eklenirken veya Product API'ye bildirilirken hata oluştu.");
                 throw;
             }
         }
@@ -90,7 +70,7 @@ namespace Category.API.services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error while getting all categories");
+                _logger.LogError(ex, "Tüm kategoriler getirilirken hata oluştu.");
                 throw;
             }
         }
@@ -103,7 +83,7 @@ namespace Category.API.services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error while getting categories {id}");
+                _logger.LogError(ex, $"ID'si {id} olan kategori getirilirken hata oluştu.");
                 throw;
             }
         }
@@ -112,12 +92,25 @@ namespace Category.API.services
         {
             try
             {
-                var categories = _mapper.Map<Data.Entities.Category>(updateCategoryDto);
-                return await _categoryRepository.UpdateAsync(categories);
+                var entity = _mapper.Map<Data.Entities.Category>(updateCategoryDto);
+                return await _categoryRepository.UpdateAsync(entity);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error while updating categories {updateCategoryDto.CategoryId}");
+                _logger.LogError(ex, $"ID'si {updateCategoryDto.CategoryId} olan kategori güncellenirken hata oluştu.");
+                throw;
+            }
+        }
+
+        public async Task<bool> DeleteAsync(int id)
+        {
+            try
+            {
+                return await _categoryRepository.RemoveAsync(id);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"ID'si {id} olan kategori silinirken hata oluştu.");
                 throw;
             }
         }

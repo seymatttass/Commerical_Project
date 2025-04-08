@@ -2,12 +2,13 @@ using Category.API.Data;
 using Category.API.Data.Repository;
 using Category.API.DTOS.Validators;
 using Category.API.services;
+using Category.API.Services;
 using FluentValidation;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
+using System;
 
 var builder = WebApplication.CreateBuilder(args);
-
 builder.Services.AddControllers();
 
 // -- Veritabaný baðlantýsý
@@ -36,20 +37,19 @@ builder.Services.AddMassTransit(configurator =>
     });
 });
 
-// 1?? Product API'ye REST istekleri atmak için HttpClient kaydý
-// appsettings.json veya environment variable içinden "ProductApiBaseUrl" çekiyoruz.
-// Eðer deðer boþ gelirse, localhost:6001 gibi bir varsayýlan deðer atayabiliriz.
-var productApiBaseUrl = builder.Configuration["ProductApiBaseUrl"] 
-                       ?? "https://localhost:7234"; // Fallback örneði
-
-builder.Services.AddHttpClient("ProductApi", client =>
+// -- Product API HttpClient yapýlandýrmasý
+// appsettings.json içinden ProductApiBaseUrl alýnýyor, yoksa doðrudan container adý kullanýlýyor
+// DNS çözümleme için doðru container adý kullanýlmalý
+builder.Services.AddHttpClient("Product.API", client =>
 {
-    client.BaseAddress = new Uri(productApiBaseUrl);
+    // Container adýný doðru kullanýn ve timeout ekleyin
+    client.BaseAddress = new Uri("http://Product.API:8080");
+    client.Timeout = TimeSpan.FromSeconds(30); // Timeout deðeri
 });
 
 var app = builder.Build();
 
-// -- Dev ortamý için Swagger
+// -- Development ortamý için Swagger
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -59,4 +59,5 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
+
 app.Run();
