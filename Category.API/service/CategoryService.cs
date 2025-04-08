@@ -3,6 +3,7 @@ using Category.API.Data.Repository;
 using Category.API.DTOS.Category;
 using Category.API.services;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Configuration;
 using System.Net.Http;
 using System.Net.Http.Json;
 
@@ -14,17 +15,20 @@ namespace Category.API.Services
         private readonly IMapper _mapper;
         private readonly ILogger<CategoryService> _logger;
         private readonly IHttpClientFactory _httpClientFactory;
+        private readonly IConfiguration _configuration;
 
         public CategoryService(
             ICategoryRepository categoryRepository,
             IMapper mapper,
             ILogger<CategoryService> logger,
-            IHttpClientFactory httpClientFactory)
+            IHttpClientFactory httpClientFactory,
+            IConfiguration configuration)
         {
             _categoryRepository = categoryRepository;
             _mapper = mapper;
             _logger = logger;
             _httpClientFactory = httpClientFactory;
+            _configuration = configuration;
         }
 
         public async Task<Data.Entities.Category> AddAsync(CreateCategoryDTO createCategoryDto)
@@ -35,8 +39,10 @@ namespace Category.API.Services
                 var categoryEntity = _mapper.Map<Data.Entities.Category>(createCategoryDto);
                 await _categoryRepository.AddAsync(categoryEntity);
 
-                // 2️⃣ Product.API’ye REST ile bildirim gönder
+                // 2️⃣ Product.API'ye Docker network üzerinden REST ile bildirim gönder
                 var client = _httpClientFactory.CreateClient("Product.API");
+
+                _logger.LogInformation("Product API'ye istek gönderiliyor. Base URL: {BaseUrl}", client.BaseAddress);
 
                 var productApiDto = new
                 {
@@ -45,12 +51,27 @@ namespace Category.API.Services
                     Active = categoryEntity.Active
                 };
 
-                var response = await client.PostAsJsonAsync("/api/categories", productApiDto);
-
-                if (!response.IsSuccessStatusCode)
+                try
                 {
-                    _logger.LogWarning("Product API'ye kategori aktarımı başarısız. StatusCode: {StatusCode}", response.StatusCode);
-                    // Gerekirse retry veya rollback mekanizması düşünülebilir
+                    // API endpoint'e istek gönder
+                    var response = await client.PostAsJsonAsync("api/categories", productApiDto);
+
+                    _logger.LogInformation("Product API yanıt verdi. Status: {StatusCode}", response.StatusCode);
+
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        string errorContent = await response.Content.ReadAsStringAsync();
+                        _logger.LogWarning("Product API'ye kategori aktarımı başarısız. StatusCode: {StatusCode}, Error: {Error}",
+                            response.StatusCode, errorContent);
+                    }
+                }
+                catch (HttpRequestException ex)
+                {
+                    _logger.LogError(ex, "Product API'ye bağlanırken hata oluştu. Adres: {BaseAddress}, Hata: {Message}",
+                        client.BaseAddress, ex.Message);
+
+                    // İsteğe bağlı: Retry mekanizması eklenebilir
+                    // Burada hata fırlatmak yerine devam etmeyi tercih ediyoruz, kategori kaydı yapıldı
                 }
 
                 return categoryEntity;

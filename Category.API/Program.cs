@@ -37,14 +37,10 @@ builder.Services.AddMassTransit(configurator =>
     });
 });
 
-// -- Product API HttpClient yapýlandýrmasý
-// appsettings.json içinden ProductApiBaseUrl alýnýyor, yoksa doðrudan container adý kullanýlýyor
-// DNS çözümleme için doðru container adý kullanýlmalý
+// HTTP Client Factory
 builder.Services.AddHttpClient("Product.API", client =>
 {
-    // Container adýný doðru kullanýn ve timeout ekleyin
-    client.BaseAddress = new Uri("http://Product.API:8080");
-    client.Timeout = TimeSpan.FromSeconds(30); // Timeout deðeri
+    client.BaseAddress = new Uri("http://productapi.dev:8080");
 });
 
 var app = builder.Build();
