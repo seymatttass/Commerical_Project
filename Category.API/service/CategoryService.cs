@@ -35,11 +35,10 @@ namespace Category.API.Services
         {
             try
             {
-                // 1️⃣ Önce Category veritabanına kaydet
                 var categoryEntity = _mapper.Map<Data.Entities.Category>(createCategoryDto);
                 await _categoryRepository.AddAsync(categoryEntity);
 
-                // 2️⃣ Product.API'ye Docker network üzerinden REST ile bildirim gönder
+                // Product.API'ye Docker network üzerinden REST ile bildirim gönderelim.
                 var client = _httpClientFactory.CreateClient("Product.API");
 
                 _logger.LogInformation("Product API'ye istek gönderiliyor. Base URL: {BaseUrl}", client.BaseAddress);
@@ -53,7 +52,7 @@ namespace Category.API.Services
 
                 try
                 {
-                    // API endpoint'e istek gönder
+                    // API endpoint'e istek gönderelim.
                     var response = await client.PostAsJsonAsync("api/categories", productApiDto);
 
                     _logger.LogInformation("Product API yanıt verdi. Status: {StatusCode}", response.StatusCode);
@@ -69,9 +68,6 @@ namespace Category.API.Services
                 {
                     _logger.LogError(ex, "Product API'ye bağlanırken hata oluştu. Adres: {BaseAddress}, Hata: {Message}",
                         client.BaseAddress, ex.Message);
-
-                    // İsteğe bağlı: Retry mekanizması eklenebilir
-                    // Burada hata fırlatmak yerine devam etmeyi tercih ediyoruz, kategori kaydı yapıldı
                 }
 
                 return categoryEntity;

@@ -15,25 +15,19 @@ using Shared.Settings;
 
 using Product.API.service.ProductService;
 using MassTransit;
-//using SagaStateMachine.Service.Consumers;
 using Product.API.Consumers;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-
 builder.Services.AddControllers();
 
 
-// DbContext configuration
 builder.Services.AddDbContext<ProductDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// AutoMapper configuration
 builder.Services.AddAutoMapper(typeof(Program));
 
 
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -41,8 +35,6 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddMassTransit(configurator =>
 {
     configurator.AddConsumer<CategoryEventConsumer>();
-    //configurator.AddConsumer<ProductAddedToBasketConsumer>();
-
     configurator.UsingRabbitMq((context, _configure) =>
     {
         _configure.Host(builder.Configuration["RabbitMQ"]);
@@ -57,30 +49,23 @@ builder.Services.AddMassTransit(configurator =>
 });
 
 
-// Repository and Service registrations
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 
-// Validator'ları kaydedin
 builder.Services.AddValidatorsFromAssemblyContaining<CreateCategoryDtoValidator>();
 builder.Services.AddValidatorsFromAssemblyContaining<UpdateCategoryDtoValidator>();
 
-
-// Repository and Service registrations
 builder.Services.AddScoped<IProductCategoryRepository, ProductCategoryRepository>();
 builder.Services.AddScoped<IProductCategoryService, ProductCategoryService>();
 
-// Validator'ları kaydedin
 builder.Services.AddValidatorsFromAssemblyContaining<CreateProductCategoryDtoValidator>();
 builder.Services.AddValidatorsFromAssemblyContaining<UpdateProductCategoryDtoValidator>();
 
 
 
-// Repository and Service registrations
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IProductService, ProductService>();
 
-// Validator'ları kaydedin
 builder.Services.AddValidatorsFromAssemblyContaining<CreateProductDtoValidator>();
 builder.Services.AddValidatorsFromAssemblyContaining<UpdateProductDtoValidator>();
 
@@ -90,7 +75,6 @@ builder.Services.AddValidatorsFromAssemblyContaining<UpdateProductDtoValidator>(
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -100,19 +84,18 @@ if (app.Environment.IsDevelopment())
 
 app.MapPost("/create-all", async (ProductDbContext context, CreateAllRequest request) =>
 {
-    // Verilerin doğruluğunu kontrol et
     if (request.Product == null)
         return Results.BadRequest("Ürün verisi gerekli.");
 
     if (request.Category == null)
         return Results.BadRequest("Kategori verisi gerekli.");
 
-    // Transaction başlat
+    // Transaction başlatılsın.
     using var transaction = await context.Database.BeginTransactionAsync();
 
     try
     {
-        // 1. Kategoriyi kontrol et, aynı isimli kategori varsa onu kullan
+        // 1. Kategoriyi kontrol et, aynı isimli kategori varsa onu kullanıyorum.
         var existingCategory = await context.Categories
             .FirstOrDefaultAsync(c => c.Name.ToLower() == request.Category.Name.ToLower());
 
@@ -120,12 +103,12 @@ app.MapPost("/create-all", async (ProductDbContext context, CreateAllRequest req
 
         if (existingCategory != null)
         {
-            // Var olan kategoriyi kullan
+            // Var olan kategoriyi kullanıyorum.
             categoryId = existingCategory.Id;
         }
         else
         {
-            // Yeni kategori oluştur
+            // Yeni kategori oluşturalım.
             var category = new Product.API.Data.Entities.Category
             {
                 Name = request.Category.Name,
@@ -139,7 +122,6 @@ app.MapPost("/create-all", async (ProductDbContext context, CreateAllRequest req
             categoryId = category.Id;
         }
 
-        // 2. Ürünü oluştur
         var product = new Product.API.Data.Entities.Product
         {
             Name = request.Product.Name,
@@ -149,7 +131,6 @@ app.MapPost("/create-all", async (ProductDbContext context, CreateAllRequest req
         await context.Products.AddAsync(product);
         await context.SaveChangesAsync();
 
-        // 3. Ürün-Kategori ilişkisini oluştur
         var productCategory = new Product.API.Data.Entities.ProductCategory
         {
             ProductId = product.Id,
@@ -159,10 +140,8 @@ app.MapPost("/create-all", async (ProductDbContext context, CreateAllRequest req
         await context.ProductCategories.AddAsync(productCategory);
         await context.SaveChangesAsync();
 
-        // İşlemleri kaydet
         await transaction.CommitAsync();
 
-        // Sonucu döndür
         var categoryResult = await context.Categories.FindAsync(categoryId);
 
         return Results.Created("/create-all", new
@@ -185,7 +164,6 @@ app.MapPost("/create-all", async (ProductDbContext context, CreateAllRequest req
     }
     catch (Exception ex)
     {
-        // Hata durumunda işlemleri geri al
         await transaction.RollbackAsync();
         return Results.Problem($"İşlem sırasında hata oluştu: {ex.Message}", statusCode: 500);
     }
@@ -193,7 +171,6 @@ app.MapPost("/create-all", async (ProductDbContext context, CreateAllRequest req
 
 app.MapPost("/add-to-basket", async (ProductDbContext context, MassTransit.ISendEndpointProvider sendEndpointProvider) =>
 {
-    // **1️⃣ - İlk ürünü veritabanından çekelim**
     var firstProduct = await context.Products.OrderBy(p => p.Id).FirstOrDefaultAsync();
 
     if (firstProduct == null)
@@ -201,18 +178,16 @@ app.MapPost("/add-to-basket", async (ProductDbContext context, MassTransit.ISend
         return Results.NotFound("Veritabanında hiç ürün bulunamadı.");
     }
 
-    // **2️⃣ - Event objesini oluşturalım**
-    var correlationId = Guid.NewGuid(); // Saga takibi için benzersiz ID
+    var correlationId = Guid.NewGuid();
 
     ProductAddedToBasketRequestEvent productAddedEvent = new()
     {
         ProductId = firstProduct.Id,
-        Count = 1, // Örnek olarak 1 tane ekliyoruz, isteğe göre değiştirilebilir
-        UserId = 1, // Sabit bir kullanıcı ID belirtiyoruz, bunu isteğe göre değiştirebilirsin
+        Count = 1, 
+        UserId = 1, 
         Price = firstProduct.Price
     };
 
-    // **3️⃣ - Eventi Saga State Machine kuyruğuna gönderelim**
     var sendEndpoint = await sendEndpointProvider.GetSendEndpoint(new Uri($"queue:{RabbitMQSettings.StateMachineQueue}"));
     await sendEndpoint.Send<ProductAddedToBasketRequestEvent>(productAddedEvent);
 
