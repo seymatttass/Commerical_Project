@@ -11,6 +11,7 @@ namespace Order.API.Data
         public DbSet<Orderss> Orderss { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
+        
         {
             base.OnModelCreating(modelBuilder);
 

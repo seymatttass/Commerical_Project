@@ -6,6 +6,9 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
 using System.Net.Http;
 using System.Net.Http.Json;
+using System.Net;
+using System.Text;
+using System.Text.Json;
 
 namespace Category.API.Services
 {
@@ -35,40 +38,12 @@ namespace Category.API.Services
         {
             try
             {
+                // Category.API veritabanına kategoriyi ekle
                 var categoryEntity = _mapper.Map<Data.Entities.Category>(createCategoryDto);
                 await _categoryRepository.AddAsync(categoryEntity);
 
-                // Product.API'ye Docker network üzerinden REST ile bildirim gönderelim.
-                var client = _httpClientFactory.CreateClient("Product.API");
-
-                _logger.LogInformation("Product API'ye istek gönderiliyor. Base URL: {BaseUrl}", client.BaseAddress);
-
-                var productApiDto = new
-                {
-                    Name = categoryEntity.Name,
-                    Description = categoryEntity.Description,
-                    Active = categoryEntity.Active
-                };
-
-                try
-                {
-                    // API endpoint'e istek gönderelim.
-                    var response = await client.PostAsJsonAsync("api/categories", productApiDto);
-
-                    _logger.LogInformation("Product API yanıt verdi. Status: {StatusCode}", response.StatusCode);
-
-                    if (!response.IsSuccessStatusCode)
-                    {
-                        string errorContent = await response.Content.ReadAsStringAsync();
-                        _logger.LogWarning("Product API'ye kategori aktarımı başarısız. StatusCode: {StatusCode}, Error: {Error}",
-                            response.StatusCode, errorContent);
-                    }
-                }
-                catch (HttpRequestException ex)
-                {
-                    _logger.LogError(ex, "Product API'ye bağlanırken hata oluştu. Adres: {BaseAddress}, Hata: {Message}",
-                        client.BaseAddress, ex.Message);
-                }
+                // Product.API'ye HTTP isteği ile bildirim gönder
+                await NotifyProductApiAsync(categoryEntity);
 
                 return categoryEntity;
             }
@@ -76,6 +51,113 @@ namespace Category.API.Services
             {
                 _logger.LogError(ex, "Kategori eklenirken veya Product API'ye bildirilirken hata oluştu.");
                 throw;
+            }
+        }
+
+        private async Task NotifyProductApiAsync(Data.Entities.Category categoryEntity)
+        {
+            // Product.API URL'ini configden alalım
+            string productApiUrl = _configuration["ProductApiBaseUrl"];
+
+            if (string.IsNullOrEmpty(productApiUrl))
+            {
+                productApiUrl = "http://Product.API:8080"; // Docker ağındaki container adını kullan
+                _logger.LogWarning("ProductApiBaseUrl ayarı bulunamadı. Varsayılan değer kullanılıyor: {DefaultUrl}", productApiUrl);
+            }
+
+            _logger.LogInformation("Product API URL: {ProductApiUrl}", productApiUrl);
+
+            // HTTPS yönlendirmelerini ve sertifika doğrulamasını bypass etmek için özel handler
+            var handler = new HttpClientHandler
+            {
+                ServerCertificateCustomValidationCallback = (sender, cert, chain, sslPolicyErrors) => true, // Sertifikaları doğrulamadan kabul et
+                AllowAutoRedirect = true, // Yönlendirmeleri otomatik takip et
+            };
+
+            // İstek verisini hazırla
+            var productApiDto = new
+            {
+                Name = categoryEntity.Name,
+                Description = categoryEntity.Description,
+                Active = categoryEntity.Active
+            };
+
+            string endpoint = "api/categories";
+            string fullUrl = $"{productApiUrl.TrimEnd('/')}/{endpoint}";
+
+            _logger.LogInformation("Product API tam URL: {FullUrl}, İstek verileri: {@RequestData}",
+                fullUrl, productApiDto);
+
+            try
+            {
+                // Custom handler ile HttpClient oluştur
+                using (var client = new HttpClient(handler))
+                {
+                    // Timeout ayarla
+                    client.Timeout = TimeSpan.FromSeconds(30);
+
+                    // İstek headerlarını ayarla
+                    client.DefaultRequestHeaders.Add("Accept", "application/json");
+
+                    // JSON içeriği oluştur
+                    var jsonContent = JsonSerializer.Serialize(productApiDto);
+                    var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+
+                    // HTTP POST isteği gönder
+                    _logger.LogInformation("HTTP POST isteği gönderiliyor: {Url}", fullUrl);
+                    var response = await client.PostAsync(fullUrl, content);
+
+                    _logger.LogInformation("Product API'ye istek gönderildi. Yanıt status kodu: {StatusCode}", response.StatusCode);
+
+                    // Yanıt içeriğini oku
+                    var responseContent = await response.Content.ReadAsStringAsync();
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        _logger.LogInformation("Kategori Product API'ye başarıyla bildirildi. Status: {StatusCode}, İçerik: {Content}",
+                            response.StatusCode, responseContent);
+                    }
+                    else
+                    {
+                        _logger.LogWarning("Product API yanıt verdi ancak başarısız status kodu döndü. Status: {StatusCode}, Yanıt: {Content}",
+                            response.StatusCode, responseContent);
+                        _logger.LogWarning("Request URL: {RequestUri}", response.RequestMessage?.RequestUri);
+                        _logger.LogWarning("Request Method: {Method}", response.RequestMessage?.Method);
+
+                        // Yönlendirme varsa takip et
+                        if (response.StatusCode == HttpStatusCode.Redirect ||
+                            response.StatusCode == HttpStatusCode.MovedPermanently ||
+                            response.StatusCode == HttpStatusCode.TemporaryRedirect)
+                        {
+                            var redirectUrl = response.Headers.Location?.ToString();
+                            _logger.LogWarning("Yönlendirme algılandı. Yeni URL: {RedirectUrl}", redirectUrl);
+
+                            if (!string.IsNullOrEmpty(redirectUrl))
+                            {
+                                _logger.LogInformation("Yönlendirmeyi takip ediliyor: {RedirectUrl}", redirectUrl);
+                                response = await client.PostAsync(redirectUrl, content);
+                                responseContent = await response.Content.ReadAsStringAsync();
+
+                                _logger.LogInformation("Yönlendirme sonrası yanıt: Status: {StatusCode}, İçerik: {Content}",
+                                    response.StatusCode, responseContent);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (HttpRequestException ex)
+            {
+                _logger.LogError(ex, "Product API'ye bağlanırken hata oluştu. URL: {Url}, Hata: {Message}",
+                    fullUrl, ex.Message);
+
+                if (ex.InnerException != null)
+                {
+                    _logger.LogError("Inner Exception: {InnerExceptionMessage}", ex.InnerException.Message);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Product API'ye istek gönderilirken beklenmeyen hata: {ErrorMessage}", ex.Message);
             }
         }
 
@@ -110,7 +192,14 @@ namespace Category.API.Services
             try
             {
                 var entity = _mapper.Map<Data.Entities.Category>(updateCategoryDto);
-                return await _categoryRepository.UpdateAsync(entity);
+                var updated = await _categoryRepository.UpdateAsync(entity);
+
+                if (updated)
+                {
+                    // Product.API'ye güncelleme bildirimi gönderilmesi de eklenebilir
+                }
+
+                return updated;
             }
             catch (Exception ex)
             {
@@ -123,7 +212,14 @@ namespace Category.API.Services
         {
             try
             {
-                return await _categoryRepository.RemoveAsync(id);
+                var deleted = await _categoryRepository.RemoveAsync(id);
+
+                if (deleted)
+                {
+                    // Product.API'ye silme bildirimi gönderilmesi de eklenebilir
+                }
+
+                return deleted;
             }
             catch (Exception ex)
             {
