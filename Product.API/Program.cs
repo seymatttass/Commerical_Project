@@ -10,45 +10,21 @@ using Product.API.DTOS.ProductCategoryDTO.Validator;
 using Product.API.DTOS.ProductDTO.Validator;
 using Product.API.service.CategoryService;
 using Product.API.service.ProductCategoryService;
-using Shared.Events.BasketEvents;
-using Shared.Settings;
-
 using Product.API.service.ProductService;
-using MassTransit;
-using Product.API.Consumers;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
-
 
 builder.Services.AddDbContext<ProductDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddAutoMapper(typeof(Program));
 
-
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-
-builder.Services.AddMassTransit(configurator =>
-{
-    configurator.AddConsumer<CategoryEventConsumer>();
-    configurator.UsingRabbitMq((context, _configure) =>
-    {
-        _configure.Host(builder.Configuration["RabbitMQ"]);
-
-        //_configure.ReceiveEndpoint(RabbitMQSettings.Basket_ProductAddedToBasketQueue, e =>
-        //e.ConfigureConsumer<ProductAddedToBasketConsumer>(context));
-
-        _configure.ReceiveEndpoint(RabbitMQSettings.Category_CategoryEventQueue, e =>
-        e.ConfigureConsumer<CategoryEventConsumer>(context));
-
-    });
-});
-
-
+// Repository ve Service kayıtları
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 
@@ -61,17 +37,11 @@ builder.Services.AddScoped<IProductCategoryService, ProductCategoryService>();
 builder.Services.AddValidatorsFromAssemblyContaining<CreateProductCategoryDtoValidator>();
 builder.Services.AddValidatorsFromAssemblyContaining<UpdateProductCategoryDtoValidator>();
 
-
-
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IProductService, ProductService>();
 
 builder.Services.AddValidatorsFromAssemblyContaining<CreateProductDtoValidator>();
 builder.Services.AddValidatorsFromAssemblyContaining<UpdateProductDtoValidator>();
-
-
-
-
 
 var app = builder.Build();
 
@@ -80,7 +50,6 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
 
 app.MapPost("/create-all", async (ProductDbContext context, CreateAllRequest request) =>
 {
@@ -169,33 +138,7 @@ app.MapPost("/create-all", async (ProductDbContext context, CreateAllRequest req
     }
 });
 
-app.MapPost("/add-to-basket", async (ProductDbContext context, MassTransit.ISendEndpointProvider sendEndpointProvider) =>
-{
-    var firstProduct = await context.Products.OrderBy(p => p.Id).FirstOrDefaultAsync();
-
-    if (firstProduct == null)
-    {
-        return Results.NotFound("Veritabanında hiç ürün bulunamadı.");
-    }
-
-    var correlationId = Guid.NewGuid();
-
-    ProductAddedToBasketRequestEvent productAddedEvent = new()
-    {
-        ProductId = firstProduct.Id,
-        Count = 1, 
-        UserId = 1, 
-        Price = firstProduct.Price
-    };
-
-    var sendEndpoint = await sendEndpointProvider.GetSendEndpoint(new Uri($"queue:{RabbitMQSettings.StateMachineQueue}"));
-    await sendEndpoint.Send<ProductAddedToBasketRequestEvent>(productAddedEvent);
-
-    return Results.Ok($"Ürün '{firstProduct.Name}' sepete eklendi ve event yayınlandı.");
-});
-
-
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 
 app.UseAuthorization();
 
