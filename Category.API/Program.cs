@@ -11,24 +11,19 @@ using System;
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 
-// -- Veritabaný baðlantýsý
 builder.Services.AddDbContext<CategoryDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// -- AutoMapper, Repository, Service
 builder.Services.AddAutoMapper(typeof(Program));
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 
-// -- FluentValidation
 builder.Services.AddValidatorsFromAssemblyContaining<CreateCategoryDtoValidator>();
 builder.Services.AddValidatorsFromAssemblyContaining<UpdateCategoryDtoValidator>();
 
-// -- Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// -- MassTransit (RabbitMQ)
 builder.Services.AddMassTransit(configurator =>
 {
     configurator.UsingRabbitMq((context, _configure) =>
@@ -37,7 +32,6 @@ builder.Services.AddMassTransit(configurator =>
     });
 });
 
-// HTTP Client Factory
 builder.Services.AddHttpClient("Product.API", client =>
 {
     client.BaseAddress = new Uri("http://productapi.dev:8080");
@@ -45,7 +39,6 @@ builder.Services.AddHttpClient("Product.API", client =>
 
 var app = builder.Build();
 
-// -- Development ortamý için Swagger
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
