@@ -38,11 +38,11 @@ namespace Category.API.Services
         {
             try
             {
-                // Category.API veritabanına kategoriyi ekle
+                // Category.API dbye kategoriyi ekliyorum.
                 var categoryEntity = _mapper.Map<Data.Entities.Category>(createCategoryDto);
                 await _categoryRepository.AddAsync(categoryEntity);
 
-                // Product.API'ye HTTP isteği ile bildirim gönder
+                // Product.API'ye HTTP isteği gönderiyorum.
                 await NotifyProductApiAsync(categoryEntity);
 
                 return categoryEntity;
@@ -56,25 +56,24 @@ namespace Category.API.Services
 
         private async Task NotifyProductApiAsync(Data.Entities.Category categoryEntity)
         {
-            // Product.API URL'ini configden alalım
+            // Product.API URL'ini configden alıyoruz.
             string productApiUrl = _configuration["ProductApiBaseUrl"];
 
             if (string.IsNullOrEmpty(productApiUrl))
             {
-                productApiUrl = "http://Product.API:8080"; // Docker ağındaki container adını kullan
+                productApiUrl = "http://Product.API:8080"; // Docker ağındaki container ismi
                 _logger.LogWarning("ProductApiBaseUrl ayarı bulunamadı. Varsayılan değer kullanılıyor: {DefaultUrl}", productApiUrl);
             }
 
             _logger.LogInformation("Product API URL: {ProductApiUrl}", productApiUrl);
 
-            // HTTPS yönlendirmelerini ve sertifika doğrulamasını bypass etmek için özel handler
             var handler = new HttpClientHandler
             {
-                ServerCertificateCustomValidationCallback = (sender, cert, chain, sslPolicyErrors) => true, // Sertifikaları doğrulamadan kabul et
-                AllowAutoRedirect = true, // Yönlendirmeleri otomatik takip et
+                ServerCertificateCustomValidationCallback = (sender, cert, chain, sslPolicyErrors) => true, 
+                AllowAutoRedirect = true,
             };
 
-            // İstek verisini hazırla
+            // İstek verisi
             var productApiDto = new
             {
                 Name = categoryEntity.Name,
@@ -90,26 +89,23 @@ namespace Category.API.Services
 
             try
             {
-                // Custom handler ile HttpClient oluştur
                 using (var client = new HttpClient(handler))
                 {
-                    // Timeout ayarla
                     client.Timeout = TimeSpan.FromSeconds(30);
 
-                    // İstek headerlarını ayarla
                     client.DefaultRequestHeaders.Add("Accept", "application/json");
 
-                    // JSON içeriği oluştur
+                    // JSON içeriği oluşturuyorum.
                     var jsonContent = JsonSerializer.Serialize(productApiDto);
                     var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
-                    // HTTP POST isteği gönder
+                    // HTTP POST isteği gönderiyorum.
                     _logger.LogInformation("HTTP POST isteği gönderiliyor: {Url}", fullUrl);
                     var response = await client.PostAsync(fullUrl, content);
 
                     _logger.LogInformation("Product API'ye istek gönderildi. Yanıt status kodu: {StatusCode}", response.StatusCode);
 
-                    // Yanıt içeriğini oku
+                    // Yanıt içeriğini okuyalım.
                     var responseContent = await response.Content.ReadAsStringAsync();
 
                     if (response.IsSuccessStatusCode)
@@ -124,7 +120,6 @@ namespace Category.API.Services
                         _logger.LogWarning("Request URL: {RequestUri}", response.RequestMessage?.RequestUri);
                         _logger.LogWarning("Request Method: {Method}", response.RequestMessage?.Method);
 
-                        // Yönlendirme varsa takip et
                         if (response.StatusCode == HttpStatusCode.Redirect ||
                             response.StatusCode == HttpStatusCode.MovedPermanently ||
                             response.StatusCode == HttpStatusCode.TemporaryRedirect)
@@ -196,7 +191,7 @@ namespace Category.API.Services
 
                 if (updated)
                 {
-                    // Product.API'ye güncelleme bildirimi gönderilmesi de eklenebilir
+                   
                 }
 
                 return updated;
@@ -216,7 +211,7 @@ namespace Category.API.Services
 
                 if (deleted)
                 {
-                    // Product.API'ye silme bildirimi gönderilmesi de eklenebilir
+                    
                 }
 
                 return deleted;

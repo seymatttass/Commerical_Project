@@ -160,7 +160,7 @@ namespace SagaStateMachine.Service.StateMachines
                         context => new StockReductionEvent(context.Instance.CorrelationId)
                          {
                               OrderId = context.Instance.OrderId,
-                              OrderItems = new List<BasketItemMessage> // ← Burası önemli!
+                              OrderItems = new List<BasketItemMessage> 
                          {
                 new BasketItemMessage
             {
@@ -182,58 +182,3 @@ namespace SagaStateMachine.Service.StateMachines
         }
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//// ** OrderCompleted ** durumunda kullanıcı bilgilerini bekliyoruz
-//During(OrderCompleted,
-//    When(GetUserDetailResponseEvent)
-//        .Then(context =>
-//        {
-//            // Kullanıcı bilgilerini Saga instance'ına kaydet
-//            context.Instance.Username = context.Data.Username;
-//            context.Instance.Name = context.Data.Name;
-//            context.Instance.Surname = context.Data.Surname;
-//            context.Instance.Email = context.Data.Email;
-//            context.Instance.TelNo = context.Data.TelNo;
-//            context.Instance.Birthdate = context.Data.Birthdate;
-//        })
-//        .TransitionTo(UserReceived)
-//        // Adres bilgilerini almak için mesaj gönder
-//        .Send(new Uri($"queue:{RabbitMQSettings.GetAddressDetailRequestEvent}"),
-//              context => new GetAddressDetailRequestEvent(context.Data.CorrelationId)
-//              {
-//                  AddressId = context.Instance.AddressId
-//              })
-//);
-
-//// ** UserReceived ** durumunda adres bilgilerini bekliyoruz
-//During(UserReceived,
-//    When(GetAddressDetailResponseEvent)
-//        .Then(context =>
-//        {
-//            // Adres bilgilerini Saga instance'ına kaydet
-//            context.Instance.Title = context.Data.Title;
-//            context.Instance.City = context.Data.City;
-//            context.Instance.Country = context.Data.Country;
-//            context.Instance.District = context.Data.District;
-//            context.Instance.AddressText = context.Data.AddressText;
-//            context.Instance.PostalCode = context.Data.PostalCode;
-//        })
-//        .Finalize()
-//);
-
