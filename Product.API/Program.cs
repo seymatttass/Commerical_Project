@@ -30,7 +30,7 @@ builder.Host.UseSerilog((hostingContext, loggerConfiguration) =>
         .WriteTo.Console()
         .WriteTo.File(
             new Serilog.Formatting.Compact.CompactJsonFormatter(),
-            "logs/product-api-.log",
+            "logs/products-api-.log",
             rollingInterval: RollingInterval.Day)
         .WriteTo.Elasticsearch(new ElasticsearchSinkOptions(new Uri(elasticsearchUrl))
         {
