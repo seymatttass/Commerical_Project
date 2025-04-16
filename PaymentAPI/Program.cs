@@ -11,8 +11,28 @@ using Payment.API.Consumers;
 using Shared.Settings;
 using Shared.Events.BasketEvents;
 using Shared.Events.StockEvents;
+using Serilog;
+using Serilog.Events;
+
+
 
 var builder = WebApplication.CreateBuilder(args);
+
+
+// Serilog yapýlandýrmasý
+builder.Host.UseSerilog((hostingContext, loggerConfiguration) =>
+    loggerConfiguration
+        .MinimumLevel.Information()
+        .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+        .Enrich.FromLogContext()
+        .Enrich.WithProperty("ServiceName", "Payment.API")
+        .WriteTo.Console()
+        .WriteTo.File(
+            new Serilog.Formatting.Compact.CompactJsonFormatter(),
+            "logs/payment-api-.log",
+            rollingInterval: RollingInterval.Day)
+);
+
 
 builder.Services.AddControllers();
 

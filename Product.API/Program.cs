@@ -11,8 +11,35 @@ using Product.API.DTOS.ProductDTO.Validator;
 using Product.API.service.CategoryService;
 using Product.API.service.ProductCategoryService;
 using Product.API.service.ProductService;
+using Serilog;
+using Serilog.Events;
+using Serilog.Sinks.Elasticsearch;
+using System;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Elasticsearch URL'sini alın
+var elasticsearchUrl = builder.Configuration["ElasticConfiguration:Uri"] ?? "http://elasticsearch:9200";
+
+builder.Host.UseSerilog((hostingContext, loggerConfiguration) =>
+    loggerConfiguration
+        .MinimumLevel.Information()
+        .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+        .Enrich.FromLogContext()
+        .Enrich.WithProperty("ServiceName", "Product.API")
+        .WriteTo.Console()
+        .WriteTo.File(
+            new Serilog.Formatting.Compact.CompactJsonFormatter(),
+            "logs/product-api-.log",
+            rollingInterval: RollingInterval.Day)
+        .WriteTo.Elasticsearch(new ElasticsearchSinkOptions(new Uri(elasticsearchUrl))
+        {
+            AutoRegisterTemplate = true,
+            IndexFormat = $"products-{hostingContext.HostingEnvironment.EnvironmentName?.ToLower().Replace(".", "-")}-{DateTime.UtcNow:yyyy-MM}",
+            NumberOfReplicas = 1,
+            NumberOfShards = 2
+        })
+);
 
 builder.Services.AddControllers();
 
