@@ -13,13 +13,14 @@ using Shared.Events.BasketEvents;
 using Shared.Events.StockEvents;
 using Serilog;
 using Serilog.Events;
-
-
+using Serilog.Sinks.Elasticsearch;
+using System;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Elasticsearch URL'sini alýn
+var elasticsearchUrl = builder.Configuration["ElasticConfiguration:Uri"] ?? "http://elasticsearch:9200";
 
-// Serilog yapýlandýrmasý
 builder.Host.UseSerilog((hostingContext, loggerConfiguration) =>
     loggerConfiguration
         .MinimumLevel.Information()
@@ -29,8 +30,15 @@ builder.Host.UseSerilog((hostingContext, loggerConfiguration) =>
         .WriteTo.Console()
         .WriteTo.File(
             new Serilog.Formatting.Compact.CompactJsonFormatter(),
-            "logs/payment-api-.log",
+            "logs/payments-api-.log",
             rollingInterval: RollingInterval.Day)
+        .WriteTo.Elasticsearch(new ElasticsearchSinkOptions(new Uri(elasticsearchUrl))
+        {
+            AutoRegisterTemplate = true,
+            IndexFormat = $"payments-{hostingContext.HostingEnvironment.EnvironmentName?.ToLower().Replace(".", "-")}-{DateTime.UtcNow:yyyy-MM}",
+            NumberOfReplicas = 1,
+            NumberOfShards = 2
+        })
 );
 
 
