@@ -12,8 +12,28 @@ using MassTransit;
 using Shared.Events.OrderCreatedEvent;
 using Order.API.Consumers;
 using Shared.Settings;
+using Serilog;
+using Serilog.Events;
+
+
 
 var builder = WebApplication.CreateBuilder(args);
+
+
+// Serilog yapýlandýrmasý
+builder.Host.UseSerilog((hostingContext, loggerConfiguration) =>
+    loggerConfiguration
+        .MinimumLevel.Information()
+        .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+        .Enrich.FromLogContext()
+        .Enrich.WithProperty("ServiceName", "Order.API")
+        .WriteTo.Console()
+        .WriteTo.File(
+            new Serilog.Formatting.Compact.CompactJsonFormatter(),
+            "logs/order-api-.log",
+            rollingInterval: RollingInterval.Day)
+);
+
 
 builder.Services.AddControllers();
 

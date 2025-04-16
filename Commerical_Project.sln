@@ -21,8 +21,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Order.API", "Order.API\Orde
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Invoice.API", "Invoice.API\Invoice.API.csproj", "{BAADC421-C6E2-4C20-B26A-A0662D5C03D9}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InvoiceDetails", "InvoiceDetails\InvoiceDetails.csproj", "{71647AEC-12F3-44AD-AA18-02DAA07EE038}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SagaStateMachine.Service", "SagaStateMachine.Service\SagaStateMachine.Service.csproj", "{778EF2A1-CB7F-46C6-AD6B-3D29E5DBBFA3}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Product.API", "Product.API\Product.API.csproj", "{809B8BF9-8D41-46CD-895A-B6095B06C78F}"
@@ -76,10 +74,6 @@ Global
 		{BAADC421-C6E2-4C20-B26A-A0662D5C03D9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BAADC421-C6E2-4C20-B26A-A0662D5C03D9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BAADC421-C6E2-4C20-B26A-A0662D5C03D9}.Release|Any CPU.Build.0 = Release|Any CPU
-		{71647AEC-12F3-44AD-AA18-02DAA07EE038}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{71647AEC-12F3-44AD-AA18-02DAA07EE038}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{71647AEC-12F3-44AD-AA18-02DAA07EE038}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{71647AEC-12F3-44AD-AA18-02DAA07EE038}.Release|Any CPU.Build.0 = Release|Any CPU
 		{778EF2A1-CB7F-46C6-AD6B-3D29E5DBBFA3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{778EF2A1-CB7F-46C6-AD6B-3D29E5DBBFA3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{778EF2A1-CB7F-46C6-AD6B-3D29E5DBBFA3}.Release|Any CPU.ActiveCfg = Release|Any CPU

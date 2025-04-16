@@ -7,8 +7,28 @@ using Stock.API.Data;
 using Stock.API.Data.Repository;
 using Stock.API.DTOS.Validators;
 using Stock.API.services;
+using Serilog;
+using Serilog.Events;
+
+
 
 var builder = WebApplication.CreateBuilder(args);
+
+
+// Serilog yapýlandýrmasý
+builder.Host.UseSerilog((hostingContext, loggerConfiguration) =>
+    loggerConfiguration
+        .MinimumLevel.Information()
+        .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+        .Enrich.FromLogContext()
+        .Enrich.WithProperty("ServiceName", "Stock.API")
+        .WriteTo.Console()
+        .WriteTo.File(
+            new Serilog.Formatting.Compact.CompactJsonFormatter(),
+            "logs/stock-api-.log",
+            rollingInterval: RollingInterval.Day)
+);
+
 
 builder.Services.AddControllers();
 
