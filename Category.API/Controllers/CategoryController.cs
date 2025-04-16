@@ -22,16 +22,24 @@ namespace Category.API.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
+            _logger.LogInformation("Tüm kategoriler alınıyor.");
             var categories = await _categoryService.GetAllAsync();
+            _logger.LogInformation("Tüm kategoriler başarıyla alındı.");
             return Ok(categories);
         }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
+            _logger.LogInformation("Kategori bilgisi alınıyor. KategoriId: {id}", id);
             var category = await _categoryService.GetByIdAsync(id);
             if (category == null)
+            {
+                _logger.LogWarning("Kategori bulunamadı. KategoriId: {id}", id);
                 return NotFound($"{id} ID'li kategori bulunamadı");
+            }
+
+            _logger.LogInformation("Kategori başarıyla alındı. KategoriId: {id}", id);
             return Ok(category);
         }
 
@@ -51,22 +59,35 @@ namespace Category.API.Controllers
         public async Task<IActionResult> Update(int id, [FromBody] UpdateCategoryDTO updateCategoryDto)
         {
             if (id != updateCategoryDto.CategoryId)
+            {
+                _logger.LogWarning("URL'deki ID ile DTO'daki ID eşleşmiyor. URL ID: {id}, DTO ID: {categoryId}", id, updateCategoryDto.CategoryId);
                 return BadRequest("URL'deki ID ile DTO'daki ID eşleşmiyor");
+            }
 
+            _logger.LogInformation("Kategori güncelleniyor. KategoriId: {id}", id);
             var result = await _categoryService.UpdateAsync(updateCategoryDto);
             if (!result)
+            {
+                _logger.LogWarning("Kategori bulunamadı. KategoriId: {id}", id);
                 return NotFound($"{id} ID'li kategori bulunamadı");
+            }
 
+            _logger.LogInformation("Kategori başarıyla güncellendi. KategoriId: {id}", id);
             return NoContent();
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
+            _logger.LogInformation("Kategori siliniyor. KategoriId: {id}", id);
             var result = await _categoryService.DeleteAsync(id);
             if (!result)
+            {
+                _logger.LogWarning("Kategori bulunamadı. KategoriId: {id}", id);
                 return NotFound($"{id} ID'li kategori bulunamadı");
+            }
 
+            _logger.LogInformation("Kategori başarıyla silindi. KategoriId: {id}", id);
             return NoContent();
         }
     }
