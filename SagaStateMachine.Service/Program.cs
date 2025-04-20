@@ -11,29 +11,7 @@ using Serilog;
 using Serilog.Events;
 using Microsoft.AspNetCore.Builder;
 
-
-
 var builder = WebApplication.CreateBuilder(args);
-
-
-// Serilog yapýlandýrmasý
-builder.Host.UseSerilog((hostingContext, loggerConfiguration) =>
-    loggerConfiguration
-        .MinimumLevel.Information()
-        .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
-        .Enrich.FromLogContext()
-        .Enrich.WithProperty("ServiceName", "SagaStateMachine.Service")
-        .WriteTo.Console()
-        .WriteTo.File(
-            new Serilog.Formatting.Compact.CompactJsonFormatter(),
-            "logs/saga-state-machine-api-.log",
-            rollingInterval: RollingInterval.Day)
-);
-
-
-
-
-
 
 
 builder.Services.AddHostedService<Worker>();

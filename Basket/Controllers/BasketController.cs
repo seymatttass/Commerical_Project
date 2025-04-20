@@ -3,13 +3,15 @@ using Basket.API.DTOS;
 using Basket.API.DTOS.BasketDTO.Basket;
 using Basket.API.Services.BasketServices;
 using Basket.API.Services;
+using Logging.Shared.Models;
+using Logging.Shared.Services;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Shared.Events.BasketEvents;
 using MassTransit;
-using Microsoft.Extensions.Logging;
+using Logging.Shared.Models.Logging.Shared.Models;
 
 namespace Basket.API.Controllers
 {
@@ -20,88 +22,158 @@ namespace Basket.API.Controllers
         private readonly IBasketService _basketService;
         private readonly IBasketItemService _basketItemService;
         private readonly IPublishEndpoint _publishEndpoint;
-        private readonly ILogger<BasketController> _logger;
+        private readonly ILogPublisher _logPublisher;
 
-        public BasketController(IBasketService basketService, IBasketItemService basketItemService, IPublishEndpoint publishEndpoint, ILogger<BasketController> logger)
+        public BasketController(
+            IBasketService basketService,
+            IBasketItemService basketItemService,
+            IPublishEndpoint publishEndpoint,
+            ILogPublisher logPublisher)
         {
             _basketService = basketService;
             _basketItemService = basketItemService;
             _publishEndpoint = publishEndpoint;
-            _logger = logger;
+            _logPublisher = logPublisher;
         }
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Baskett>>> GetBaskets()
         {
-            _logger.LogInformation("Tüm sepetler alınıyor.");
+            await _logPublisher.PublishLogAsync(new LogMessage
+            {
+                Service = "Basket.API",
+                Level = "Information",
+                Message = "Tüm sepetler alınıyor."
+            });
+
             var baskets = await _basketService.GetAllAsync();
-            _logger.LogInformation("Tüm sepetler başarıyla alındı.");
+
+            await _logPublisher.PublishLogAsync(new LogMessage
+            {
+                Service = "Basket.API",
+                Level = "Information",
+                Message = "Tüm sepetler başarıyla alındı."
+            });
+
             return Ok(baskets);
         }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<Baskett>> GetBasket(int id)
         {
-            _logger.LogInformation("Sepet bilgisi alınıyor. SepetId: {id}", id);
+            await _logPublisher.PublishLogAsync(new LogMessage
+            {
+                Service = "Basket.API",
+                Level = "Information",
+                Message = $"Sepet bilgisi alınıyor. SepetId: {id}"
+            });
+
             var basket = await _basketService.GetByIdAsync(id);
 
             if (basket == null)
             {
-                _logger.LogWarning("Sepet bulunamadı. SepetId: {id}", id);
+                await _logPublisher.PublishLogAsync(new LogMessage
+                {
+                    Service = "Basket.API",
+                    Level = "Warning",
+                    Message = $"Sepet bulunamadı. SepetId: {id}"
+                });
+
                 return NotFound();
             }
 
-            _logger.LogInformation("Sepet başarıyla alındı. SepetId: {id}", id);
+            await _logPublisher.PublishLogAsync(new LogMessage
+            {
+                Service = "Basket.API",
+                Level = "Information",
+                Message = $"Sepet başarıyla alındı. SepetId: {id}"
+            });
+
             return Ok(basket);
         }
 
         [HttpGet("user/{userId}")]
         public async Task<ActionResult<Baskett>> GetBasketByUserId(int userId)
         {
-            _logger.LogInformation("Kullanıcıya ait sepet bilgisi alınıyor. KullanıcıId: {userId}", userId);
+            await _logPublisher.PublishLogAsync(new LogMessage
+            {
+                Service = "Basket.API",
+                Level = "Information",
+                Message = $"Kullanıcıya ait sepet bilgisi alınıyor. KullanıcıId: {userId}"
+            });
+
             var baskets = await _basketService.GetAllAsync();
             var basket = baskets.FirstOrDefault(b => b.UserId == userId);
 
             if (basket == null)
             {
-                _logger.LogWarning("Kullanıcıya ait sepet bulunamadı. KullanıcıId: {userId}", userId);
+                await _logPublisher.PublishLogAsync(new LogMessage
+                {
+                    Service = "Basket.API",
+                    Level = "Warning",
+                    Message = $"Kullanıcıya ait sepet bulunamadı. KullanıcıId: {userId}"
+                });
+
                 return NotFound();
             }
 
-            _logger.LogInformation("Kullanıcıya ait sepet başarıyla alındı. KullanıcıId: {userId}", userId);
+            await _logPublisher.PublishLogAsync(new LogMessage
+            {
+                Service = "Basket.API",
+                Level = "Information",
+                Message = $"Kullanıcıya ait sepet başarıyla alındı. KullanıcıId: {userId}"
+            });
+
             return Ok(basket);
         }
 
         [HttpPost]
         public async Task<ActionResult<Baskett>> CreateBasket(CreateBasketDTO basketDto)
         {
-            decimal calculatedTotalPrice = 0;
-
-            _logger.LogInformation("Yeni sepet oluşturuluyor.");
-            foreach (var item in basketDto.BasketItems)
+            await _logPublisher.PublishLogAsync(new LogMessage
             {
-                calculatedTotalPrice += item.Price * item.Count;
-            }
+                Service = "Basket.API",
+                Level = "Information",
+                Message = "Yeni sepet oluşturuluyor."
+            });
 
             var basket = await _basketService.AddAsync(basketDto);
-            _logger.LogInformation("Sepet başarıyla oluşturuldu. SepetId: {id}", basket.ID);
+
+            await _logPublisher.PublishLogAsync(new LogMessage
+            {
+                Service = "Basket.API",
+                Level = "Information",
+                Message = $"Sepet başarıyla oluşturuldu. SepetId: {basket.ID}"
+            });
+
             return CreatedAtAction(nameof(GetBasket), new { id = basket.ID }, basket);
         }
 
         [HttpPost("items")]
         public async Task<ActionResult<BasketItem>> AddBasketItem(CreateBasketItemDTO itemDto)
         {
-            _logger.LogInformation("Sepet öğesi ekleniyor. ÜrünId: {productId}", itemDto.ProductId);
+            await _logPublisher.PublishLogAsync(new LogMessage
+            {
+                Service = "Basket.API",
+                Level = "Information",
+                Message = $"Sepet öğesi ekleniyor. ÜrünId: {itemDto.ProductId}"
+            });
 
             if (itemDto.ProductId <= 0)
             {
-                _logger.LogWarning("Geçersiz ürünId: {productId}", itemDto.ProductId);
+                await _logPublisher.PublishLogAsync(new LogMessage
+                {
+                    Service = "Basket.API",
+                    Level = "Warning",
+                    Message = $"Geçersiz ürünId: {itemDto.ProductId}"
+                });
+
                 return BadRequest("ProductId is required");
             }
 
             var basketItem = await _basketItemService.AddAsync(itemDto);
 
-            var productAddedEvent = new ProductAddedToBasketRequestEvent()
+            var productAddedEvent = new ProductAddedToBasketRequestEvent
             {
                 ProductId = basketItem.ProductId,
                 Count = basketItem.Count,
@@ -109,7 +181,13 @@ namespace Basket.API.Controllers
             };
 
             await _publishEndpoint.Publish(productAddedEvent);
-            _logger.LogInformation("Sepet öğesi başarıyla eklendi. ÜrünId: {productId}", itemDto.ProductId);
+
+            await _logPublisher.PublishLogAsync(new LogMessage
+            {
+                Service = "Basket.API",
+                Level = "Information",
+                Message = $"Sepet öğesi başarıyla eklendi. ÜrünId: {itemDto.ProductId}"
+            });
 
             return CreatedAtAction("GetBasketItem", "BasketItem", new { id = basketItem.ID }, basketItem);
         }
@@ -117,34 +195,70 @@ namespace Basket.API.Controllers
         [HttpGet("items/{id}")]
         public async Task<ActionResult<BasketItem>> GetBasketItem(int id)
         {
-            _logger.LogInformation("Sepet öğesi alınıyor. ÖğesiId: {id}", id);
+            await _logPublisher.PublishLogAsync(new LogMessage
+            {
+                Service = "Basket.API",
+                Level = "Information",
+                Message = $"Sepet öğesi alınıyor. ÖğesiId: {id}"
+            });
+
             var basketItem = await _basketItemService.GetByIdAsync(id);
 
             if (basketItem == null)
             {
-                _logger.LogWarning("Sepet öğesi bulunamadı. ÖğesiId: {id}", id);
+                await _logPublisher.PublishLogAsync(new LogMessage
+                {
+                    Service = "Basket.API",
+                    Level = "Warning",
+                    Message = $"Sepet öğesi bulunamadı. ÖğesiId: {id}"
+                });
+
                 return NotFound();
             }
 
-            _logger.LogInformation("Sepet öğesi başarıyla alındı. ÖğesiId: {id}", id);
+            await _logPublisher.PublishLogAsync(new LogMessage
+            {
+                Service = "Basket.API",
+                Level = "Information",
+                Message = $"Sepet öğesi başarıyla alındı. ÖğesiId: {id}"
+            });
+
             return Ok(basketItem);
         }
 
         [HttpPost("checkout/{id}")]
         public async Task<IActionResult> CheckoutBasket(int id)
         {
-            _logger.LogInformation("Sepet ödeme işlemi başlatılıyor. SepetId: {id}", id);
+            await _logPublisher.PublishLogAsync(new LogMessage
+            {
+                Service = "Basket.API",
+                Level = "Information",
+                Message = $"Sepet ödeme işlemi başlatılıyor. SepetId: {id}"
+            });
+
             var basket = await _basketService.GetByIdAsync(id);
 
             if (basket == null)
             {
-                _logger.LogWarning("Sepet bulunamadı. SepetId: {id}", id);
+                await _logPublisher.PublishLogAsync(new LogMessage
+                {
+                    Service = "Basket.API",
+                    Level = "Warning",
+                    Message = $"Sepet bulunamadı. SepetId: {id}"
+                });
+
                 return NotFound();
             }
 
             if (basket.BasketItems == null || !basket.BasketItems.Any())
             {
-                _logger.LogWarning("Sepet boş, ödeme işlemi yapılmaz. SepetId: {id}", id);
+                await _logPublisher.PublishLogAsync(new LogMessage
+                {
+                    Service = "Basket.API",
+                    Level = "Warning",
+                    Message = $"Sepet boş, ödeme yapılamaz. SepetId: {id}"
+                });
+
                 return BadRequest("Cannot checkout an empty basket");
             }
 
@@ -152,11 +266,23 @@ namespace Basket.API.Controllers
 
             if (!success)
             {
-                _logger.LogError("Sepet ödeme işlemi başarısız oldu. SepetId: {id}", id);
+                await _logPublisher.PublishLogAsync(new LogMessage
+                {
+                    Service = "Basket.API",
+                    Level = "Error",
+                    Message = $"Sepet ödeme işlemi başarısız oldu. SepetId: {id}"
+                });
+
                 return StatusCode(500, "Failed to process checkout");
             }
 
-            _logger.LogInformation("Sepet ödeme işlemi başarıyla tamamlandı. SepetId: {id}", id);
+            await _logPublisher.PublishLogAsync(new LogMessage
+            {
+                Service = "Basket.API",
+                Level = "Information",
+                Message = $"Sepet ödeme işlemi başarıyla tamamlandı. SepetId: {id}"
+            });
+
             return Ok(new { message = "Checkout completed successfully" });
         }
     }

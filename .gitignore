@@ -369,9 +369,12 @@ FodyWeavers.xsd
 
 
 # AppSettings files
+# AppSettings dosyaları (hassas)
 **/appsettings.json
-*/appsettings..json
-!/appsettings.example.json
+**/appsettings.*.json
+
+# Örnek konfigürasyon kalabilir (güvenli)
+!**/appsettings.example.json
 
 
 # Docker files to ignore
