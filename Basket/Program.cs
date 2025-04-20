@@ -20,34 +20,12 @@ using Serilog;
 using Serilog.Events;
 using Serilog.Sinks.Elasticsearch;
 using System;
+using Logging.Shared.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Elasticsearch URL'sini alýn
 var elasticsearchUrl = builder.Configuration["ElasticConfiguration:Uri"] ?? "http://elasticsearch:9200";
-
-builder.Host.UseSerilog((hostingContext, loggerConfiguration) =>
-    loggerConfiguration
-        .MinimumLevel.Information()
-        .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
-        .Enrich.FromLogContext()
-        .Enrich.WithProperty("ServiceName", "Basket.API")
-        .WriteTo.Console()
-        .WriteTo.File(
-            new Serilog.Formatting.Compact.CompactJsonFormatter(),
-            "logs/basket-api-.log",
-            rollingInterval: RollingInterval.Day)
-        .WriteTo.Elasticsearch(new ElasticsearchSinkOptions(new Uri(elasticsearchUrl))
-        {
-            AutoRegisterTemplate = true,
-            IndexFormat = $"basket-{hostingContext.HostingEnvironment.EnvironmentName?.ToLower().Replace(".", "-")}-{DateTime.UtcNow:yyyy-MM}",
-            NumberOfReplicas = 1,
-            NumberOfShards = 2
-        })
-);
-
-
-
 
 
 builder.Services.AddControllers();
@@ -72,6 +50,9 @@ builder.Services.AddMassTransit(configurator =>
         _configure.Host(builder.Configuration["RabbitMQ"]);
     });
 });
+
+builder.Services.AddScoped<ILogPublisher, LogPublisher>();
+
 
 builder.Services.AddScoped<IBasketRepository, BasketRepository>();
 builder.Services.AddScoped<IBasketService, BasketService>();

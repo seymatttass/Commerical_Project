@@ -20,26 +20,6 @@ var builder = WebApplication.CreateBuilder(args);
 // Elasticsearch URL'sini alýn
 var elasticsearchUrl = builder.Configuration["ElasticConfiguration:Uri"] ?? "http://elasticsearch:9200";
 
-builder.Host.UseSerilog((hostingContext, loggerConfiguration) =>
-    loggerConfiguration
-        .MinimumLevel.Information()
-        .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
-        .Enrich.FromLogContext()
-        .Enrich.WithProperty("ServiceName", "Users.API")
-        .WriteTo.Console()
-        .WriteTo.File(
-            new Serilog.Formatting.Compact.CompactJsonFormatter(),
-            "logs/users-api-.log",
-            rollingInterval: RollingInterval.Day)
-        .WriteTo.Elasticsearch(new ElasticsearchSinkOptions(new Uri(elasticsearchUrl))
-        {
-            AutoRegisterTemplate = true,
-            IndexFormat = $"users-{hostingContext.HostingEnvironment.EnvironmentName?.ToLower().Replace(".", "-")}-{DateTime.UtcNow:yyyy-MM}",
-            NumberOfReplicas = 1,
-            NumberOfShards = 2
-        })
-);
-
 builder.Services.AddControllers();
 
 builder.Services.AddDbContext<UsersDbContext>(options =>
