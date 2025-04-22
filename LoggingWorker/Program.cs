@@ -7,11 +7,12 @@ using LoggingWorker;
 
 var logger = new LoggerConfiguration()
     .WriteTo.Console()
-    .WriteTo.Elasticsearch(new ElasticsearchSinkOptions(new Uri("http://elasticsearch:9200"))
-    {
-        AutoRegisterTemplate = true,
-        IndexFormat = $"central-logs-{DateTime.UtcNow:yyyy-MM}"
-    })
+.WriteTo.Elasticsearch(new ElasticsearchSinkOptions(new Uri("http://elasticsearch:9200"))
+{
+    AutoRegisterTemplate = true,
+    IndexFormat = "central-logssss-{0:yyyy-MM}", // $ iþaretini kaldýrýn
+    TypeName = null // ES 8.x için gerekli
+})
     .CreateLogger();
 
 // ? Eski modeldeki gibi builder yerine doðrudan Host ile baþlanýr
