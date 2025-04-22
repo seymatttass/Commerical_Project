@@ -1,7 +1,5 @@
 ﻿using FluentValidation;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using Product.API.Data;
 using Product.API.Data.Entities.ViewModels;
 using Product.API.Data.Repository.CategoryProductRepository;
@@ -17,7 +15,6 @@ using Serilog;
 using Serilog.Events;
 using Serilog.Sinks.Elasticsearch;
 using System;
-using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -52,36 +49,6 @@ builder.Services.AddScoped<IProductService, ProductService>();
 
 builder.Services.AddValidatorsFromAssemblyContaining<CreateProductDtoValidator>();
 builder.Services.AddValidatorsFromAssemblyContaining<UpdateProductDtoValidator>();
-
-
-
-
-
-// JWT Authentication ekleyin
-string authenticationProviderKey = "TestKey";
-SymmetricSecurityKey signInKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:Security"]));
-
-builder.Services.AddAuthentication(options =>
-    options.DefaultAuthenticateScheme = authenticationProviderKey)
-    .AddJwtBearer(authenticationProviderKey, options =>
-    {
-        options.RequireHttpsMetadata = false;
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuerSigningKey = true,
-            IssuerSigningKey = signInKey,
-            ValidateIssuer = true,
-            ValidIssuer = builder.Configuration["JWT:Issuer"],
-            ValidateAudience = true,
-            ValidAudience = builder.Configuration["JWT:Audience"],
-            ValidateLifetime = true,
-            ClockSkew = TimeSpan.Zero,
-            RequireExpirationTime = true
-        };
-    });
-
-
-
 
 var app = builder.Build();
 

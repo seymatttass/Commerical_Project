@@ -1,13 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Product.API.service.CategoryService;
 using Product.API.DTOS.CategoryDTO.Category;
-using Microsoft.AspNetCore.Authorization;
 
 namespace Product.API.Controllers
 {
     [ApiController]
     [Route("api/categories")]
-    [Authorize]
     public class CategoriesController : ControllerBase
     {
         private readonly ICategoryService _categoryService;

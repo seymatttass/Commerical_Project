@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging;
 namespace Product.API.Controllers
 {
     [ApiController]
-    [Route("api/products")]
+    [Route("[controller]")]
     public class ProductController : ControllerBase
     {
         private readonly IProductService _productService;
