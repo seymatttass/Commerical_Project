@@ -38,6 +38,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Logging.Shared", "Logging.S
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LoggingWorker", "LoggingWorker\LoggingWorker.csproj", "{3B24DDBC-3893-4C21-B4F9-ACBCE3362E35}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AuthAPI", "AuthAPI\AuthAPI.csproj", "{413B2D32-8399-4BD3-8820-AA3CB64B2565}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -104,6 +106,10 @@ Global
 		{3B24DDBC-3893-4C21-B4F9-ACBCE3362E35}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3B24DDBC-3893-4C21-B4F9-ACBCE3362E35}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3B24DDBC-3893-4C21-B4F9-ACBCE3362E35}.Release|Any CPU.Build.0 = Release|Any CPU
+		{413B2D32-8399-4BD3-8820-AA3CB64B2565}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{413B2D32-8399-4BD3-8820-AA3CB64B2565}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{413B2D32-8399-4BD3-8820-AA3CB64B2565}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{413B2D32-8399-4BD3-8820-AA3CB64B2565}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
