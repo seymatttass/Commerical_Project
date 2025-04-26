@@ -1,5 +1,7 @@
 ﻿using FluentValidation;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Product.API.Data;
 using Product.API.Data.Entities.ViewModels;
 using Product.API.Data.Repository.CategoryProductRepository;
@@ -12,9 +14,8 @@ using Product.API.service.CategoryService;
 using Product.API.service.ProductCategoryService;
 using Product.API.service.ProductService;
 using Serilog;
-using Serilog.Events;
-using Serilog.Sinks.Elasticsearch;
 using System;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -50,6 +51,18 @@ builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddValidatorsFromAssemblyContaining<CreateProductDtoValidator>();
 builder.Services.AddValidatorsFromAssemblyContaining<UpdateProductDtoValidator>();
 
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowGateway", policy =>
+    {
+        policy.WithOrigins("http://gatewayapi.dev:80")
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
+
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -57,6 +70,10 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+
+// CORS politikasını aktifleştir
+app.UseCors("AllowGateway");
 
 app.MapPost("/create-all", async (ProductDbContext context, CreateAllRequest request) =>
 {
@@ -145,10 +162,7 @@ app.MapPost("/create-all", async (ProductDbContext context, CreateAllRequest req
     }
 });
 
-//app.UseHttpsRedirection();
-
-app.UseAuthorization();
-
+// Route ön eki eklemek için controller route'larını değiştirelim
 app.MapControllers();
 
 app.Run();
