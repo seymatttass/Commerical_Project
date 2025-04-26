@@ -1,5 +1,7 @@
 ﻿using FluentValidation;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Product.API.Data;
 using Product.API.Data.Entities.ViewModels;
 using Product.API.Data.Repository.CategoryProductRepository;
@@ -14,39 +16,70 @@ using Product.API.service.ProductService;
 using Serilog;
 using Serilog.Events;
 using Serilog.Sinks.Elasticsearch;
-using System;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Elasticsearch URL'sini alın
+// Elasticsearch URL
 var elasticsearchUrl = builder.Configuration["ElasticConfiguration:Uri"] ?? "http://elasticsearch:9200";
 
+// Serilog
+builder.Host.UseSerilog((context, configuration) =>
+{
+    configuration.MinimumLevel.Information()
+        .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+        .Enrich.FromLogContext()
+        .WriteTo.Console()
+        .WriteTo.Elasticsearch(new ElasticsearchSinkOptions(new Uri(elasticsearchUrl))
+        {
+            AutoRegisterTemplate = true,
+            IndexFormat = $"product-api-logs-{DateTime.UtcNow:yyyy-MM}"
+        });
+});
+
+// Add JWT authentication
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.RequireHttpsMetadata = false;
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = builder.Configuration["JWT:Issuer"],
+            ValidAudience = builder.Configuration["JWT:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:Security"]))
+        };
+    });
+
 builder.Services.AddControllers();
-
-builder.Services.AddDbContext<ProductDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
-
-builder.Services.AddAutoMapper(typeof(Program));
-
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Repository ve Service kayıtları
+// DB
+builder.Services.AddDbContext<ProductDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// AutoMapper
+builder.Services.AddAutoMapper(typeof(Program));
+
+// Repository & Services
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
-
-builder.Services.AddValidatorsFromAssemblyContaining<CreateCategoryDtoValidator>();
-builder.Services.AddValidatorsFromAssemblyContaining<UpdateCategoryDtoValidator>();
 
 builder.Services.AddScoped<IProductCategoryRepository, ProductCategoryRepository>();
 builder.Services.AddScoped<IProductCategoryService, ProductCategoryService>();
 
-builder.Services.AddValidatorsFromAssemblyContaining<CreateProductCategoryDtoValidator>();
-builder.Services.AddValidatorsFromAssemblyContaining<UpdateProductCategoryDtoValidator>();
-
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IProductService, ProductService>();
 
+// FluentValidation
+builder.Services.AddValidatorsFromAssemblyContaining<CreateCategoryDtoValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<UpdateCategoryDtoValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<CreateProductCategoryDtoValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<UpdateProductCategoryDtoValidator>();
 builder.Services.AddValidatorsFromAssemblyContaining<CreateProductDtoValidator>();
 builder.Services.AddValidatorsFromAssemblyContaining<UpdateProductDtoValidator>();
 
@@ -58,6 +91,12 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+//app.UseHttpsRedirection(); // Opsiyonel, gateway'de varsa buna gerek olmayabilir
+
+app.UseAuthentication(); // 💡 JWT Authentication middleware
+app.UseAuthorization();
+
+// Test Endpoint (Opsiyonel)
 app.MapPost("/create-all", async (ProductDbContext context, CreateAllRequest request) =>
 {
     if (request.Product == null)
@@ -66,12 +105,10 @@ app.MapPost("/create-all", async (ProductDbContext context, CreateAllRequest req
     if (request.Category == null)
         return Results.BadRequest("Kategori verisi gerekli.");
 
-    // Transaction başlatılsın.
     using var transaction = await context.Database.BeginTransactionAsync();
 
     try
     {
-        // 1. Kategoriyi kontrol et, aynı isimli kategori varsa onu kullanıyorum.
         var existingCategory = await context.Categories
             .FirstOrDefaultAsync(c => c.Name.ToLower() == request.Category.Name.ToLower());
 
@@ -79,12 +116,10 @@ app.MapPost("/create-all", async (ProductDbContext context, CreateAllRequest req
 
         if (existingCategory != null)
         {
-            // Var olan kategoriyi kullanıyorum.
             categoryId = existingCategory.Id;
         }
         else
         {
-            // Yeni kategori oluşturalım.
             var category = new Product.API.Data.Entities.Category
             {
                 Name = request.Category.Name,
@@ -144,10 +179,6 @@ app.MapPost("/create-all", async (ProductDbContext context, CreateAllRequest req
         return Results.Problem($"İşlem sırasında hata oluştu: {ex.Message}", statusCode: 500);
     }
 });
-
-//app.UseHttpsRedirection();
-
-app.UseAuthorization();
 
 app.MapControllers();
 

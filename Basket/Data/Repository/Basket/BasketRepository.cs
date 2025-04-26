@@ -11,7 +11,7 @@ namespace Basket.API.Data.Repository.Basket
         private readonly IDistributedCache _redisCache; 
         private readonly string _basketPrefix = "basket:"; 
 
-        public BasketRepository(IDistributedCache redisCache)
+        public BasketRepository(IDistributedCache redisCache)//IDistributedCache, Redis için kullanılan .NET’in abstraction katmanıdır.
         {
             _redisCache = redisCache;
         }
@@ -21,7 +21,7 @@ namespace Basket.API.Data.Repository.Basket
             return $"{_basketPrefix}{id}";
         }
 
-        private string GetUserBasketKey(int userId)
+        private string GetUserBasketKey(int userId) //Sepet ID’si veya kullanıcı ID’si ile Redis key üretir.
         {
             return $"user:{userId}:basket";
         }
@@ -47,8 +47,9 @@ namespace Basket.API.Data.Repository.Basket
             return !string.IsNullOrEmpty(basketJson);
         }
 
-        public async Task<IEnumerable<Baskett>> FindAsync(Expression<Func<Baskett, bool>> predicate)
+        public async Task<IEnumerable<Baskett>> FindAsync(Expression<Func<Baskett, bool>> predicate)//Redis’te bu ID’ye sahip bir sepet var mı diye kontrol eder.
         {
+            //Expression<Func<Baskett, bool>> “Bana Baskett alıp true ya da false döndüren bir LINQ filtresi ver”demek ,LINQ SQL e benzer sorgular yazmayı sağlar
             var allBaskets = await GetAllAsync();
             return allBaskets.AsQueryable().Where(predicate).ToList();
         }
@@ -172,7 +173,7 @@ namespace Basket.API.Data.Repository.Basket
             await _redisCache.SetStringAsync(
                 nextIdKey,
                 (nextId + 1).ToString(),
-                new DistributedCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(365) }
+                new DistributedCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(30) }
             );
 
             return nextId;
@@ -191,7 +192,7 @@ namespace Basket.API.Data.Repository.Basket
 
         private async Task AddBasketIdAsync(int id)
         {
-            var ids = await GetAllBasketIdsAsync();
+            var ids = await GetAllBasketIdsAsync();//Eğer verilen id Redis'teki "basket:ids" listesinde yoksa, listeye ekleyip Redis'e geri kaydetmek.
 
             if (!ids.Contains(id))
             {
@@ -199,7 +200,7 @@ namespace Basket.API.Data.Repository.Basket
                 await _redisCache.SetStringAsync(
                     "basket:ids",
                     JsonSerializer.Serialize(ids),
-                    new DistributedCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(365) }
+                    new DistributedCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(30) }
                 );
             }
         }
@@ -214,7 +215,7 @@ namespace Basket.API.Data.Repository.Basket
                 await _redisCache.SetStringAsync(
                     "basket:ids",
                     JsonSerializer.Serialize(ids),
-                    new DistributedCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(365) }
+                    new DistributedCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(30) }
                 );
             }
         }

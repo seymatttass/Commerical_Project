@@ -10,7 +10,7 @@ namespace Basket.API.Data.Repository
 {
     public class BasketItemRepository : IBasketItemRepository
     {
-        private readonly IDistributedCache _redisCache;
+        private readonly IDistributedCache _redisCache; //BasketItemRepository sınıfının içinde redis ile iletşim kurmak için IDistributedCache nesnesi  
         private readonly string _basketItemPrefix = "basketitem:"; 
         public BasketItemRepository(IDistributedCache redisCache)
         {

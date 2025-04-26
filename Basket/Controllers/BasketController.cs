@@ -19,10 +19,10 @@ namespace Basket.API.Controllers
     [ApiController]
     public class BasketController : ControllerBase
     {
-        private readonly IBasketService _basketService;
-        private readonly IBasketItemService _basketItemService;
-        private readonly IPublishEndpoint _publishEndpoint;
-        private readonly ILogPublisher _logPublisher;
+        private readonly IBasketService _basketService; //Sepet CRUD işlemleri.
+        private readonly IBasketItemService _basketItemService; //Sepet öğeleri (ürünler) ile ilgili işlemler.
+        private readonly IPublishEndpoint _publishEndpoint; //Sepet öğeleri (ürünler) ile ilgili işlemler.
+        private readonly ILogPublisher _logPublisher; //Log kayıtlarını merkezi log servislerine (örneğin Elasticsearch) göndermek için kullanılır.
 
         public BasketController(
             IBasketService basketService,
@@ -146,7 +146,7 @@ namespace Basket.API.Controllers
                 Message = $"Sepet başarıyla oluşturuldu. SepetId: {basket.ID}"
             });
 
-            return CreatedAtAction(nameof(GetBasket), new { id = basket.ID }, basket);
+            return CreatedAtAction(nameof(GetBasket), new { id = basket.ID }, basket); // "Yeni sepet başarıyla oluşturuldu, işte ona ulaşabileceğin link ve tüm bilgiler."
         }
 
         [HttpPost("items")]
@@ -168,7 +168,7 @@ namespace Basket.API.Controllers
                     Message = $"Geçersiz ürünId: {itemDto.ProductId}"
                 });
 
-                return BadRequest("ProductId is required");
+                return BadRequest("ProductId is required"); //istemciden (frontend, Postman, Swagger vs.) gelen hatalı veya eksik veriyi belirtmek için kullanılan bir HTTP 400 durum kodudur.
             }
 
             var basketItem = await _basketItemService.AddAsync(itemDto);

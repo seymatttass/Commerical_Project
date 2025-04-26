@@ -4,14 +4,14 @@ namespace Basket.API.Data.Repository.Basket
 {
     public interface IBasketRepository
     {
-        Task<Baskett> GetByIdAsync(int id);
-        Task<IEnumerable<Baskett>> GetAllAsync();
-        Task<IEnumerable<Baskett>> FindAsync(Expression<Func<Baskett, bool>> predicate);
-        Task AddAsync(Baskett entity);
-        Task<bool> RemoveAsync(int id);
-        Task RemoveRangeAsync(IEnumerable<Baskett> entities);
-        Task<bool> UpdateAsync(Baskett entity);
-        Task<bool> ExistsAsync(int id);
-        Task<Baskett> GetByUserIdAsync(int userId);
+        Task<Baskett> GetByIdAsync(int id); //ID’ye göre sepet getir
+        Task<IEnumerable<Baskett>> GetAllAsync();//Tüm sepetleri getir
+        Task<IEnumerable<Baskett>> FindAsync(Expression<Func<Baskett, bool>> predicate);//Şarta göre filtreli getir
+        Task AddAsync(Baskett entity);//Yeni sepet ekle
+        Task<bool> RemoveAsync(int id);//Sepeti sil
+        Task RemoveRangeAsync(IEnumerable<Baskett> entities); //Birden fazla sepeti sil
+        Task<bool> UpdateAsync(Baskett entity);//Sepeti güncelle
+        Task<bool> ExistsAsync(int id);//Sepet var mı kontrol et
+        Task<Baskett> GetByUserIdAsync(int userId);//Kullanıcıya ait sepeti getir
     }
 }
