@@ -27,9 +27,27 @@
       ],
       "UpstreamPathTemplate": "/auth",
       "UpstreamHttpMethod": [ "POST" ]
+    },
+    {
+      "UpstreamPathTemplate": "/gateway/products/create-all",
+      "UpstreamHttpMethod": [ "POST" ],
+      "DownstreamPathTemplate": "/api/products/create-all",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "Product.API",
+          "Port": 8080
+        }
+      ],
+      "QoSOptions": {
+        "ExceptionsAllowedBeforeBreaking": 3,
+        "DurationOfBreak": 10000,
+        "TimeoutValue": 5000
+      }
     }
   ],
   "GlobalConfiguration": {
-    "BaseUrl": "http://gatewayapi.dev"
+    "BaseUrl": "http://gatewayapi.dev:8080",
+    "RequestIdKey": "OcelotCorrelationId"
   }
 }

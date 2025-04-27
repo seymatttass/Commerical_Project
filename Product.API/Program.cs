@@ -16,6 +16,7 @@ using Product.API.service.ProductService;
 using Serilog;
 using Serilog.Events;
 using Serilog.Sinks.Elasticsearch;
+using System;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -83,6 +84,18 @@ builder.Services.AddValidatorsFromAssemblyContaining<UpdateProductCategoryDtoVal
 builder.Services.AddValidatorsFromAssemblyContaining<CreateProductDtoValidator>();
 builder.Services.AddValidatorsFromAssemblyContaining<UpdateProductDtoValidator>();
 
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowGateway", policy =>
+    {
+        policy.WithOrigins("http://gatewayapi.dev:80")
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
+
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -91,12 +104,10 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-//app.UseHttpsRedirection(); // Opsiyonel, gateway'de varsa buna gerek olmayabilir
 
-app.UseAuthentication(); // 💡 JWT Authentication middleware
-app.UseAuthorization();
+// CORS politikasını aktifleştir
+app.UseCors("AllowGateway");
 
-// Test Endpoint (Opsiyonel)
 app.MapPost("/create-all", async (ProductDbContext context, CreateAllRequest request) =>
 {
     if (request.Product == null)
@@ -180,6 +191,7 @@ app.MapPost("/create-all", async (ProductDbContext context, CreateAllRequest req
     }
 });
 
+// Route ön eki eklemek için controller route'larını değiştirelim
 app.MapControllers();
 
 app.Run();

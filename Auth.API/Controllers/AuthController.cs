@@ -1,25 +1,57 @@
-﻿using Auth.API.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 
-[Route("api/[controller]")]
-[ApiController]
-public class AuthController : ControllerBase
+namespace Auth.API.Controllers
 {
-    private readonly TokenService _tokenService;
-
-    public AuthController(TokenService tokenService)
+    [ApiController]
+    [Route("[controller]")]
+    public class AuthController : ControllerBase
     {
-        _tokenService = tokenService;
-    }
+        private readonly IConfiguration _configuration;
 
-    [HttpPost("login")]
-    public IActionResult Login([FromBody] LoginModel login)
-    {
-        if (login.Username == "admin" && login.Password == "12345")
+        public AuthController(IConfiguration configuration)
         {
-            var token = _tokenService.GenerateToken(login.Username);
-            return Ok(new { token });
+            _configuration = configuration;
         }
-        return Unauthorized();
+
+        [HttpGet("login")]
+        public IActionResult Login(string userName, string password)
+        {
+            // Basit doğrulama
+            if (userName == "seyma" && password == "seyma12")
+            {
+                var token = GenerateJwtToken(userName);
+                return Ok(new { token });
+            }
+
+            return Unauthorized();
+        }
+
+        private string GenerateJwtToken(string userName)
+        {
+            var claims = new[]
+            {
+                new Claim(ClaimTypes.Name, userName),
+                new Claim(ClaimTypes.Role, "Admin")
+            };
+
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("your-super-secret-key-with-at-least-32-characters"));
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+            var expires = DateTime.Now.AddMinutes(60);
+
+            var token = new JwtSecurityToken(
+                issuer: "https://jwt.io",
+                audience: "your-api",
+                claims: claims,
+                expires: expires,
+                signingCredentials: creds
+            );
+
+            return new JwtSecurityTokenHandler().WriteToken(token);
+        }
     }
 }
+

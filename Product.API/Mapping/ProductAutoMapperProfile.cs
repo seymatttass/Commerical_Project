@@ -25,7 +25,5 @@ namespace Product.API.Mapping
             CreateMap<UpdateProductCategoryDTO, Data.Entities.ProductCategory>()
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.CategoryId));
         }
-
-
     }
 }
