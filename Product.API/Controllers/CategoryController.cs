@@ -47,6 +47,16 @@ namespace Product.API.Controllers
 
             try
             {
+                // Gelen DTO'da ID varsa logla - Category API'den gelen sync isteği olabilir
+                if (dto.GetType().GetProperty("Id") != null)
+                {
+                    var idValue = dto.GetType().GetProperty("Id").GetValue(dto, null);
+                    if (idValue != null)
+                    {
+                        _logger.LogInformation("Category API'den gelen senkronizasyon isteği olabilir. ID: {CategoryId}", idValue);
+                    }
+                }
+
                 var created = await _categoryService.AddAsync(dto);
                 _logger.LogInformation("Kategori başarıyla oluşturuldu: ID={CategoryId}, Name={CategoryName}",
                     created.Id, created.Name);

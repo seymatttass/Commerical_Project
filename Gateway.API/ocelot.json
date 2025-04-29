@@ -1,9 +1,9 @@
 ﻿{
   "Routes": [
     {
-      "UpstreamPathTemplate": "/gateway/products/create-all",
+      "UpstreamPathTemplate": "/gateway/product/categories",
       "UpstreamHttpMethod": [ "Post" ],
-      "DownstreamPathTemplate": "/api/products/create-all",
+      "DownstreamPathTemplate": "/api/categories",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
@@ -14,12 +14,36 @@
       "QoSOptions": {
         "ExceptionsAllowedBeforeBreaking": 3,
         "DurationOfBreak": 10000,
-        "TimeoutValue": 5000
+        "TimeoutValue": 30000
       }
+    },
+    {
+      "UpstreamPathTemplate": "/gateway/product/{everything}",
+      "UpstreamHttpMethod": [ "Get", "Post", "Put", "Delete" ],
+      "DownstreamPathTemplate": "/api/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "Product.API",
+          "Port": 8080
+        }
+      ]
+    },
+    {
+      "UpstreamPathTemplate": "/gateway/category/{everything}",
+      "UpstreamHttpMethod": [ "Get", "Post", "Put", "Delete" ],
+      "DownstreamPathTemplate": "/api/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "Category.API_1",
+          "Port": 8080
+        }
+      ]
     }
   ],
   "GlobalConfiguration": {
-    "BaseUrl": "http://gatewayapi.dev:8080",
-    "RequestIdKey": "OcelotCorrelationId"
+    "BaseUrl": "http://Gateway.API:8080",
+    "RequestIdKey": "OcelotRequestId"
   }
 }

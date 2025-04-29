@@ -1,8 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Product.API.DTOS.ProductDTO;
 using Product.API.DTOS.ProductDTO.Product;
 using Product.API.service.ProductService;
-using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
 using Product.API.Data.Entities.ViewModels;
 using Product.API.Data;
@@ -10,7 +8,7 @@ using Product.API.Data;
 namespace Product.API.Controllers
 {
     [ApiController]
-    [Route("api/products")] // Gateway üzerinden erişim için route'u değiştirdik
+    [Route("api/products")]
     public class ProductController : ControllerBase
     {
         private readonly IProductService _productService;
@@ -37,12 +35,10 @@ namespace Product.API.Controllers
             if (request.Category == null)
                 return BadRequest("Kategori verisi gerekli.");
 
-            // ProductDbContext'i constructor üzerinden inject edin
             using var transaction = await _context.Database.BeginTransactionAsync();
 
             try
             {
-                // 1. Kategoriyi kontrol et, aynı isimli kategori varsa onu kullanıyorum.
                 var existingCategory = await _context.Categories
                     .FirstOrDefaultAsync(c => c.Name.ToLower() == request.Category.Name.ToLower());
 
@@ -50,12 +46,10 @@ namespace Product.API.Controllers
 
                 if (existingCategory != null)
                 {
-                    // Var olan kategoriyi kullanıyorum.
                     categoryId = existingCategory.Id;
                 }
                 else
                 {
-                    // Yeni kategori oluşturalım.
                     var category = new Product.API.Data.Entities.Category
                     {
                         Name = request.Category.Name,
@@ -115,18 +109,6 @@ namespace Product.API.Controllers
                 return Problem($"İşlem sırasında hata oluştu: {ex.Message}", statusCode: 500);
             }
         }
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

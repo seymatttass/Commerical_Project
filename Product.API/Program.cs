@@ -1,7 +1,5 @@
 ﻿using FluentValidation;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using Product.API.Data;
 using Product.API.Data.Entities.ViewModels;
 using Product.API.Data.Repository.CategoryProductRepository;
@@ -13,13 +11,10 @@ using Product.API.DTOS.ProductDTO.Validator;
 using Product.API.service.CategoryService;
 using Product.API.service.ProductCategoryService;
 using Product.API.service.ProductService;
-using Serilog;
-using System;
-using System.Text;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Elasticsearch URL'sini alın
 var elasticsearchUrl = builder.Configuration["ElasticConfiguration:Uri"] ?? "http://elasticsearch:9200";
 
 builder.Services.AddControllers();
@@ -32,7 +27,6 @@ builder.Services.AddAutoMapper(typeof(Program));
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Repository ve Service kayıtları
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 
@@ -56,7 +50,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowGateway", policy =>
     {
-        policy.WithOrigins("http://gatewayapi.dev:80")
+        policy.WithOrigins("http://Gateway.API:8080")
               .AllowAnyMethod()
               .AllowAnyHeader();
     });
@@ -71,8 +65,6 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-
-// CORS politikasını aktifleştir
 app.UseCors("AllowGateway");
 
 app.MapPost("/create-all", async (ProductDbContext context, CreateAllRequest request) =>
@@ -162,7 +154,6 @@ app.MapPost("/create-all", async (ProductDbContext context, CreateAllRequest req
     }
 });
 
-// Route ön eki eklemek için controller route'larını değiştirelim
 app.MapControllers();
 
 app.Run();

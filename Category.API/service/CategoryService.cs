@@ -2,10 +2,6 @@
 using Category.API.Data.Repository;
 using Category.API.DTOS.Category;
 using Category.API.services;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Configuration;
-using System.Net.Http;
-using System.Net.Http.Json;
 using System.Net;
 using System.Text;
 using System.Text.Json;
@@ -38,153 +34,134 @@ namespace Category.API.Services
         {
             try
             {
-                // Category.API veritabanına kategoriyi ekle
+                // 1. Önce Category.API veritabanına kategoriyi ekle
+                _logger.LogInformation("Kategori veritabanına ekleniyor: {CategoryName}", createCategoryDto.Name);
                 var categoryEntity = _mapper.Map<Data.Entities.Category>(createCategoryDto);
                 await _categoryRepository.AddAsync(categoryEntity);
+                _logger.LogInformation("Kategori veritabanına başarıyla eklendi. ID: {CategoryId}", categoryEntity.Id);
 
-                // Product.API'ye HTTP isteği ile bildirim gönder
-                await NotifyProductApiAsync(categoryEntity);
+                // 2. Gateway API üzerinden Product.API'ye bildirim gönder
+                _logger.LogInformation("Product API'ye bildirim gönderiliyor: {CategoryName}", categoryEntity.Name);
+                await NotifyProductApiViaGatewayAsync(categoryEntity);
 
                 return categoryEntity;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Kategori eklenirken veya Product API'ye bildirilirken hata oluştu.");
+                _logger.LogError(ex, "Kategori eklenirken veya Product API'ye bildirilirken hata oluştu. Kategori: {CategoryName}", createCategoryDto.Name);
                 throw;
             }
         }
 
-        private async Task NotifyProductApiAsync(Data.Entities.Category categoryEntity)
+        private async Task NotifyProductApiViaGatewayAsync(Data.Entities.Category categoryEntity)
         {
-            // Product.API URL'ini configden alalım
-            string productApiUrl = _configuration["ProductApiBaseUrl"];
+            // Docker Compose'da belirtilen gerçek container isimlerini kullan
+            string gatewayUrl = "http://Gateway.API:8080";
 
-            if (string.IsNullOrEmpty(productApiUrl))
-            {
-                productApiUrl = "http://Product.API:8080"; // Docker ağındaki container adını kullan
-                _logger.LogWarning("ProductApiBaseUrl ayarı bulunamadı. Varsayılan değer kullanılıyor: {DefaultUrl}", productApiUrl);
-            }
+            // Endpoint path
+            string endpoint = "/gateway/product/categories";
+            string fullUrl = $"{gatewayUrl.TrimEnd('/')}{endpoint}";
 
-            _logger.LogInformation("Product API URL: {ProductApiUrl}", productApiUrl);
-
-            // HTTPS yönlendirmelerini ve sertifika doğrulamasını bypass etmek için özel handler
-            var handler = new HttpClientHandler
-            {
-                ServerCertificateCustomValidationCallback = (sender, cert, chain, sslPolicyErrors) => true, // Sertifikaları doğrulamadan kabul et
-                AllowAutoRedirect = true, // Yönlendirmeleri otomatik takip et
-            };
+            _logger.LogInformation("Gateway URL: {GatewayUrl}", gatewayUrl);
+            _logger.LogInformation("Gateway tam URL: {FullUrl}", fullUrl);
 
             // İstek verisini hazırla
-            var productApiDto = new
+            var categoryDto = new
             {
                 Name = categoryEntity.Name,
                 Description = categoryEntity.Description,
                 Active = categoryEntity.Active
             };
 
-            string endpoint = "api/categories";
-            string fullUrl = $"{productApiUrl.TrimEnd('/')}/{endpoint}";
+            _logger.LogInformation("Gönderilecek kategori verisi: {@CategoryData}", categoryDto);
 
-            _logger.LogInformation("Product API tam URL: {FullUrl}, İstek verileri: {@RequestData}",
-                fullUrl, productApiDto);
-
+            // HTTP Client oluştur
             try
             {
-                // Custom handler ile HttpClient oluştur
-                using (var client = new HttpClient(handler))
+                using (var client = _httpClientFactory.CreateClient())
                 {
-                    // Timeout ayarla
+                    // Timeout ayarla (30 saniye)
                     client.Timeout = TimeSpan.FromSeconds(30);
 
                     // İstek headerlarını ayarla
                     client.DefaultRequestHeaders.Add("Accept", "application/json");
 
                     // JSON içeriği oluştur
-                    var jsonContent = JsonSerializer.Serialize(productApiDto);
+                    var jsonContent = JsonSerializer.Serialize(categoryDto);
                     var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+
+                    // Gönderilecek JSON içeriğini logla
+                    _logger.LogInformation("Gönderilecek JSON içeriği: {JsonContent}", jsonContent);
 
                     // HTTP POST isteği gönder
                     _logger.LogInformation("HTTP POST isteği gönderiliyor: {Url}", fullUrl);
                     var response = await client.PostAsync(fullUrl, content);
 
-                    _logger.LogInformation("Product API'ye istek gönderildi. Yanıt status kodu: {StatusCode}", response.StatusCode);
+                    // Yanıt durumunu logla
+                    _logger.LogInformation("Gateway'e istek gönderildi. Yanıt status kodu: {StatusCode}", response.StatusCode);
+
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        _logger.LogWarning("Gateway başarısız yanıt döndü. Status: {StatusCode}", response.StatusCode);
+
+                        // Gateway hata verirse, direkt Product API'ye göndermeyi deneyelim
+                        string productApiUrl = "http://Product.API:8080";
+                        string productEndpoint = "/api/categories";
+                        string productFullUrl = $"{productApiUrl.TrimEnd('/')}{productEndpoint}";
+
+                        _logger.LogInformation("Gateway başarısız oldu. Direkt Product API'ye istek deneniyor: {Url}", productFullUrl);
+
+                        var productResponse = await client.PostAsync(productFullUrl, content);
+                        _logger.LogInformation("Product API'ye direkt istek gönderildi. Yanıt: {StatusCode}", productResponse.StatusCode);
+                    }
 
                     // Yanıt içeriğini oku
                     var responseContent = await response.Content.ReadAsStringAsync();
-
-                    if (response.IsSuccessStatusCode)
-                    {
-                        _logger.LogInformation("Kategori Product API'ye başarıyla bildirildi. Status: {StatusCode}, İçerik: {Content}",
-                            response.StatusCode, responseContent);
-                    }
-                    else
-                    {
-                        _logger.LogWarning("Product API yanıt verdi ancak başarısız status kodu döndü. Status: {StatusCode}, Yanıt: {Content}",
-                            response.StatusCode, responseContent);
-                        _logger.LogWarning("Request URL: {RequestUri}", response.RequestMessage?.RequestUri);
-                        _logger.LogWarning("Request Method: {Method}", response.RequestMessage?.Method);
-
-                        // Yönlendirme varsa takip et
-                        if (response.StatusCode == HttpStatusCode.Redirect ||
-                            response.StatusCode == HttpStatusCode.MovedPermanently ||
-                            response.StatusCode == HttpStatusCode.TemporaryRedirect)
-                        {
-                            var redirectUrl = response.Headers.Location?.ToString();
-                            _logger.LogWarning("Yönlendirme algılandı. Yeni URL: {RedirectUrl}", redirectUrl);
-
-                            if (!string.IsNullOrEmpty(redirectUrl))
-                            {
-                                _logger.LogInformation("Yönlendirmeyi takip ediliyor: {RedirectUrl}", redirectUrl);
-                                response = await client.PostAsync(redirectUrl, content);
-                                responseContent = await response.Content.ReadAsStringAsync();
-
-                                _logger.LogInformation("Yönlendirme sonrası yanıt: Status: {StatusCode}, İçerik: {Content}",
-                                    response.StatusCode, responseContent);
-                            }
-                        }
-                    }
+                    _logger.LogInformation("Gateway yanıt içeriği: {Content}", responseContent);
                 }
             }
             catch (HttpRequestException ex)
             {
-                _logger.LogError(ex, "Product API'ye bağlanırken hata oluştu. URL: {Url}, Hata: {Message}",
-                    fullUrl, ex.Message);
+                _logger.LogError(ex, "Gateway'e istek gönderilirken HTTP hatası oluştu: {ErrorMessage}", ex.Message);
 
-                if (ex.InnerException != null)
+                // HTTP isteği sırasında hata olursa, direkt Product API'ye göndermeyi deneyelim
+                try
                 {
-                    _logger.LogError("Inner Exception: {InnerExceptionMessage}", ex.InnerException.Message);
+                    string productApiUrl = "http://Product.API:8080";
+                    string productEndpoint = "/api/categories";
+                    string productFullUrl = $"{productApiUrl.TrimEnd('/')}{productEndpoint}";
+
+                    _logger.LogInformation("HTTP hatası oluştu. Direkt Product API'ye istek deneniyor: {Url}", productFullUrl);
+
+                    using (var backupClient = _httpClientFactory.CreateClient())
+                    {
+                        var jsonContent = JsonSerializer.Serialize(categoryDto);
+                        var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+
+                        var productResponse = await backupClient.PostAsync(productFullUrl, content);
+                        _logger.LogInformation("Product API'ye direkt istek gönderildi. Yanıt: {StatusCode}", productResponse.StatusCode);
+                    }
+                }
+                catch (Exception backupEx)
+                {
+                    _logger.LogError(backupEx, "Product API'ye direkt istek gönderilirken hata oluştu: {ErrorMessage}", backupEx.Message);
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Product API'ye istek gönderilirken beklenmeyen hata: {ErrorMessage}", ex.Message);
+                _logger.LogError(ex, "Gateway'e istek gönderilirken genel hata oluştu: {ErrorMessage}", ex.Message);
             }
         }
 
+        // Diğer metodlar...
         public async Task<IEnumerable<Data.Entities.Category>> GetAllAsync()
         {
-            try
-            {
-                return await _categoryRepository.GetAllAsync();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Tüm kategoriler getirilirken hata oluştu.");
-                throw;
-            }
+            return await _categoryRepository.GetAllAsync();
         }
 
         public async Task<Data.Entities.Category> GetByIdAsync(int id)
         {
-            try
-            {
-                return await _categoryRepository.GetByIdAsync(id);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"ID'si {id} olan kategori getirilirken hata oluştu.");
-                throw;
-            }
+            return await _categoryRepository.GetByIdAsync(id);
         }
 
         public async Task<bool> UpdateAsync(UpdateCategoryDTO updateCategoryDto)
@@ -196,7 +173,8 @@ namespace Category.API.Services
 
                 if (updated)
                 {
-                    // Product.API'ye güncelleme bildirimi gönderilmesi de eklenebilir
+                    // Kategori güncellendiğinde Product API'ye de bildir
+                    await NotifyProductApiViaGatewayAsync(entity);
                 }
 
                 return updated;
@@ -212,11 +190,16 @@ namespace Category.API.Services
         {
             try
             {
+                var category = await _categoryRepository.GetByIdAsync(id);
+                if (category == null)
+                    return false;
+
                 var deleted = await _categoryRepository.RemoveAsync(id);
 
                 if (deleted)
                 {
-                    // Product.API'ye silme bildirimi gönderilmesi de eklenebilir
+                    // Silme işlemi için Product API'ye bildirim gönderme eklenebilir
+                    // Bu kısım geliştirilebilir
                 }
 
                 return deleted;

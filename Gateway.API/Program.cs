@@ -4,13 +4,11 @@ using Ocelot.Provider.Polly;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configuration
 builder.Configuration
     .SetBasePath(builder.Environment.ContentRootPath)
     .AddJsonFile("ocelot.json", optional: false, reloadOnChange: true)
     .AddEnvironmentVariables();
 
-// Swagger desteðini ekleyin
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -22,13 +20,11 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-// Ocelot servislerini ekleyin ve Polly desteðini saðlayýn
 builder.Services.AddOcelot(builder.Configuration)
     .AddPolly();
 
 var app = builder.Build();
 
-// Geliþtirme ortamýnda Swagger'ý aktifleþtirin
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
