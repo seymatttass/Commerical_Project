@@ -22,7 +22,7 @@ namespace Payment.API.Consumers
 
             var sendEndpoint = await _sendEndpointProvider.GetSendEndpoint(new Uri($"queue:{RabbitMQSettings.StateMachineQueue}"));
 
-            if (true) // Buraya ödeme başarılı olup olmadığını kontrol eden gerçek mantığı ekleyebilirsiniz.
+            if (true) 
             {
                 PaymentCompletedEvent paymentCompletedEvent = new(context.Message.CorrelationId);
                 await sendEndpoint.Send(paymentCompletedEvent);

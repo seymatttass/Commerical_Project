@@ -14,17 +14,10 @@ using Shared.Events.BasketEvents;
 using Shared.Settings;
 using Basket.API.Data.ViewModels;
 using Basket.API.Data.Entities;
-using System.Linq;
-using Basket.API.Consumers;
-using Serilog;
-using Serilog.Events;
-using Serilog.Sinks.Elasticsearch;
-using System;
 using Logging.Shared.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Elasticsearch URL'sini alýn
 var elasticsearchUrl = builder.Configuration["ElasticConfiguration:Uri"] ?? "http://elasticsearch:9200";
 
 

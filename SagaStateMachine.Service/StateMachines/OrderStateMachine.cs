@@ -1,12 +1,9 @@
 ﻿using MassTransit;
 using SagaStateMachine.Service.StateInstances;
-using Shared.Events.AddressEvent;
 using Shared.Events.BasketEvents;
 using Shared.Events.OrderCreatedEvent;
 using Shared.Events.PaymentEvents;
 using Shared.Events.StockEvents;
-using Shared.Events.UserEvents;
-using Shared.Message;
 using Shared.Messages;
 using Shared.Settings;
 

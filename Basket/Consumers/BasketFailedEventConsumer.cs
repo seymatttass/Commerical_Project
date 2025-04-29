@@ -1,9 +1,8 @@
 ﻿using Basket.API.Data;
 using MassTransit;
 using Shared.Events.BasketEvents;
-using Shared.Events.OrderCreatedEvent;
-using StackExchange.Redis;
-using System;
+
+
 namespace Basket.API.Consumers
 {
     public class BasketFailedEventConsumer(BasketDbContext basketDbContext) : IConsumer<BasketFailedEvent>

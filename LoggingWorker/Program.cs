@@ -1,5 +1,4 @@
 using LoggingWorker.Consumers;
-using Logging.Shared.Models;
 using MassTransit;
 using Serilog;
 using Serilog.Sinks.Elasticsearch;
@@ -14,9 +13,9 @@ var logger = new LoggerConfiguration()
     })
     .CreateLogger();
 
-// ? Eski modeldeki gibi builder yerine doðrudan Host ile baþlanýr
+
 var host = Host.CreateDefaultBuilder(args)
-    .UseSerilog(logger) // Artýk doðru yerde
+    .UseSerilog(logger) 
     .ConfigureServices((context, services) =>
     {
         services.AddMassTransit(x =>

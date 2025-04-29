@@ -2,7 +2,6 @@
 using Microsoft.EntityFrameworkCore;
 using Shared.Events.OrderCreatedEvent;
 using Stock.API.Data;
-using Stock.API.Data.Entities;
 
 namespace Stock.API.Consumers
 {

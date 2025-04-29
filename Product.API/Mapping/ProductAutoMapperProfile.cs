@@ -10,20 +10,23 @@ namespace Product.API.Mapping
 
         public ProductAutoMapperProfile()
         {
-            CreateMap<CreateProductDTO, Data.Entities.Product>();
+            CreateMap<CreateProductDTO, Data.Entities.Product>()
+                .ReverseMap();
 
             CreateMap<UpdateProductDTO, Data.Entities.Product>()
-                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.ProductId));
+                .ReverseMap();
 
-            CreateMap<CreateCategoryDTO, Data.Entities.Category>();
+            CreateMap<CreateCategoryDTO, Data.Entities.Category>()
+                .ReverseMap();
 
             CreateMap<UpdateCategoryDTO, Data.Entities.Category>()
-                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.CategoryId));
+                .ReverseMap();
 
-            CreateMap<CreateProductCategoryDTO, Data.Entities.ProductCategory>();
+            CreateMap<CreateProductCategoryDTO, Data.Entities.ProductCategory>()
+                .ReverseMap();
 
             CreateMap<UpdateProductCategoryDTO, Data.Entities.ProductCategory>()
-                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.CategoryId));
+                .ReverseMap();
         }
 
 

@@ -73,10 +73,8 @@ namespace Product.API.service.ProductCategoryService
         {
             try
             {
-                // DTO'dan entity'ye dönüştürme
                 var productCategories = _mapper.Map<Data.Entities.ProductCategory>(updateProductCategoryDto);
 
-                // Adres güncelleme
                 return await _productCategoryRepository.UpdateAsync(productCategories);
             }
             catch (Exception ex)

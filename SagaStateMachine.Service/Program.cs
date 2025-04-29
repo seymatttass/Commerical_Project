@@ -3,12 +3,8 @@ using SagaStateMachine.Service;
 using SagaStateMachine.Service.StateInstances;
 using SagaStateMachine.Service.StateMachines;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using SagaStateMachine.Service.StateDbContext;
 using Shared.Settings;
-using Serilog;
-using Serilog.Events;
 using Microsoft.AspNetCore.Builder;
 
 var builder = WebApplication.CreateBuilder(args);

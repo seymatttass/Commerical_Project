@@ -49,7 +49,6 @@ namespace Product.API.Data.Repository.CategoryRepository
             var category = await GetByIdAsync(id);
             if (category == null)
             {
-                // Eğer veritabanında böyle bir kategori yoksa
                 return false;
             }
 
