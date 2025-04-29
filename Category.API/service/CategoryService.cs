@@ -55,10 +55,8 @@ namespace Category.API.Services
 
         private async Task NotifyProductApiViaGatewayAsync(Data.Entities.Category categoryEntity)
         {
-            // Docker Compose'da belirtilen gerçek container isimlerini kullan
             string gatewayUrl = "http://Gateway.API:8080";
 
-            // Endpoint path
             string endpoint = "/gateway/product/categories";
             string fullUrl = $"{gatewayUrl.TrimEnd('/')}{endpoint}";
 
@@ -80,10 +78,10 @@ namespace Category.API.Services
             {
                 using (var client = _httpClientFactory.CreateClient())
                 {
-                    // Timeout ayarla (30 saniye)
+                    // (30 saniye)
                     client.Timeout = TimeSpan.FromSeconds(30);
 
-                    // İstek headerlarını ayarla
+                    // İstek headerları
                     client.DefaultRequestHeaders.Add("Accept", "application/json");
 
                     // JSON içeriği oluştur
@@ -153,7 +151,6 @@ namespace Category.API.Services
             }
         }
 
-        // Diğer metodlar...
         public async Task<IEnumerable<Data.Entities.Category>> GetAllAsync()
         {
             return await _categoryRepository.GetAllAsync();
@@ -198,8 +195,7 @@ namespace Category.API.Services
 
                 if (deleted)
                 {
-                    // Silme işlemi için Product API'ye bildirim gönderme eklenebilir
-                    // Bu kısım geliştirilebilir
+  
                 }
 
                 return deleted;

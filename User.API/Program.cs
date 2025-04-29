@@ -17,7 +17,6 @@ using System;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Elasticsearch URL'sini alýn
 var elasticsearchUrl = builder.Configuration["ElasticConfiguration:Uri"] ?? "http://elasticsearch:9200";
 
 builder.Services.AddControllers();
