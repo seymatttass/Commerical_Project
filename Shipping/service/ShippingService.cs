@@ -72,10 +72,8 @@ namespace Shipping.API.service
         {
             try
             {
-                // DTO'dan entity'ye dönüştürme
                 var shipping = _mapper.Map<Data.Entities.Shipping>(updateShippingDto);
 
-                // Adres güncelleme
                 return await _shippingRepository.UpdateAsync(shipping);
             }
             catch (Exception ex)
